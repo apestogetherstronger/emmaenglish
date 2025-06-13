@@ -142,7 +142,7 @@
       optionsEl.innerHTML = '';
       choices.forEach(choice => {
         const btn = document.createElement('button');
-        btn.textContent = choice;
+        btn.textContent = choice.he;
         btn.className = 'option';
         btn.onclick = () => handleAnswer(choice);
         optionsEl.appendChild(btn);
