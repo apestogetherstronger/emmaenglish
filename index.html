@@ -182,8 +182,10 @@
     function handleAnswer(choice) {
       if (choice === current.he) {
         score++;
+        speak('correct!')
        // alert('נכון! (Correct!)');
       } else {
+        speak('wrong!')
         alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`);
       }
       scoreEl.textContent = `Score: ${score}`;
