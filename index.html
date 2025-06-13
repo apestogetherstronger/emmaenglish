@@ -283,14 +283,17 @@
       let resultText;
       if (userCol === compCol) {
         resultText = "It's a tie!";
+        speak('it\'s a tie!');
       } else if (
         (userWeapon === 'rock'     && compWeapon === 'scissors') ||
         (userWeapon === 'paper'    && compWeapon === 'rock')     ||
         (userWeapon === 'scissors' && compWeapon === 'paper')
       ) {
         resultText = 'You won!';
+        speak('you won!');
       } else {
         resultText = 'You lost!';
+        speak('you lost!');
       }
 
       rpsOptions.innerHTML = '';
