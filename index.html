@@ -96,15 +96,13 @@
       // Build options: correct + 3 random others
       const choices = [current.he];
       const others = dictionary.filter(w => w.he !== current.he);
-      alert(len(others));
       shuffle(others);
-      choices.push(...others.slice(0, 4));
+      choices.push(...others.slice(0, 3));
       shuffle(choices);
 
       // Render options
       optionsEl.innerHTML = '';
       choices.forEach(choice => {
-        alert(choice);
         const btn = document.createElement('button');
         btn.textContent = choice;
         btn.className = 'option';
@@ -114,7 +112,6 @@
     }
 
     function handleAnswer(choice) {
-      alert(choice);
       if (choice === current.he) {
         score++;
         alert('נכון! (Correct!)');
