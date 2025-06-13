@@ -97,7 +97,9 @@
       const choices = [current.he];
       const others = dictionary.filter(w => w.he !== current.he);
       shuffle(others);
-      choices.push(...others.slice(0, 3));
+      for (let j = 0; j < 4 ; j++) {
+        choices.push(others[j].he)
+      }
       shuffle(choices);
 
       // Render options
