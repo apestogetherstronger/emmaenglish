@@ -47,7 +47,6 @@
       margin-top: 10px;
       font-size: 18px;
     }
-    /* RPS styles */
     #rps-options {
       display: flex;
       justify-content: space-around;
@@ -96,7 +95,7 @@
     let score = 0;
     let current;
 
-    // Load sprite-sheet
+    // Load sprite-sheet (only for RPS)
     const sheetImg = new Image();
     sheetImg.src = 'images/rps-spritesheet.png';
     let sheetW, sheetH, cellW, cellH;
@@ -105,7 +104,6 @@
       sheetH = sheetImg.naturalHeight;
       cellW = sheetW / 3;
       cellH = sheetH / 4;
-      nextQuestion();
     };
 
     // Elements
@@ -153,7 +151,7 @@
     function handleAnswer(choice) {
       if (choice === current.he) {
         score++;
-        speak('Correct!');
+        alert('נכון! (Correct!)');
       } else {
         alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`);
       }
@@ -196,11 +194,13 @@
       cv.width = 64;
       cv.height = 64;
       const ctx = cv.getContext('2d');
-      ctx.drawImage(
-        sheetImg,
-        col * cellW, row * cellH, cellW, cellH,
-        0, 0, cv.width, cv.height
-      );
+      if (cellW && cellH) {
+        ctx.drawImage(
+          sheetImg,
+          col * cellW, row * cellH, cellW, cellH,
+          0, 0, cv.width, cv.height
+        );
+      }
       return cv;
     }
 
@@ -243,6 +243,7 @@
       nextQuestion();
     });
 
-    // Note: quiz starts when sprite-sheet loads (see sheetImg.onload)
+    // Start the quiz immediately
+    nextQuestion();
   </script></body>
 </html>
