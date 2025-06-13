@@ -136,7 +136,7 @@
       const choices = [current];
       const others = dictionary.filter(w => w.he !== current.he);
       shuffle(others);
-      choices.push(...others.slice(0, 3));
+      choices.push(...others.slice(0, 5));
       shuffle(choices);
 
       optionsEl.innerHTML = '';
