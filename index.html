@@ -14,6 +14,10 @@
       margin: 0;
       background: #f0f0f0;
     }
+    #loading {
+      font-size: 18px;
+      color: #555;
+    }
     #quiz-container, #rps-container {
       background: #fff;
       padding: 20px;
@@ -22,12 +26,20 @@
       text-align: center;
       width: 300px;
       margin-bottom: 20px;
+      display: none;
     }
     #word { font-size: 24px; margin-bottom: 15px; cursor: pointer; }
     .option, .rps-option {
-      display: block; margin: 10px auto; padding: 10px;
-      background: #e0e0e0; border: none; border-radius: 4px;
-      width: 100%; font-size: 18px; cursor: pointer; text-align: center;
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      background: #e0e0e0;
+      border: none;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 18px;
+      cursor: pointer;
+      text-align: center;
     }
     .option:hover, .rps-option:hover { background: #d5d5d5; }
     #score { margin-top: 10px; font-size: 18px; }
@@ -38,29 +50,107 @@
   </style>
 </head>
 <body>
-  <div id="quiz-container">
+  <div id="loading">Loading quiz...</div>  <div id="quiz-container">
     <div id="word" title="Click to replay pronunciation"></div>
     <div id="options"></div>
     <div id="score">Score: 0</div>
-  </div>  <div id="rps-container" style="display:none;">
+  </div>  <div id="rps-container">
     <h2>Rock Paper Scissors Challenge!</h2>
     <div id="rps-options"></div>
     <div id="rps-result"></div>
-    <button id="rps-continue" style="display:none;">Continue Quiz</button>
+    <button id="rps-continue">Continue Quiz</button>
   </div>  <script>
-    // --- Load dictionary from external file ---
+    // --- Elements ---
+    const loadingEl = document.getElementById('loading');
+    const quizContainer = document.getElementById('quiz-container');
+    const wordEl = document.getElementById('word');
+    const optionsEl = document.getElementById('options');
+    const scoreEl = document.getElementById('score');
+    const rpsContainer = document.getElementById('rps-container');
+    const rpsOptions = document.getElementById('rps-options');
+    const rpsResult = document.getElementById('rps-result');
+    const rpsContinueBtn = document.getElementById('rps-continue');
+
     let dictionary = [];
-    fetch('dictionary.json')
-      .then(res => res.ok ? res.json() : Promise.reject(res.status))
+    let score = 0;
+    let current;
+
+    // --- Utility Functions ---
+    function randInt(n) { return Math.floor(Math.random() * n); }
+    function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = randInt(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; }}
+    function speak(text) { if (!('speechSynthesis' in window)) return; const utt = new SpeechSynthesisUtterance(text); utt.lang = 'en-US'; speechSynthesis.speak(utt); }
+
+    // --- Load Dictionary ---
+    fetch('./dictionary.json')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         dictionary = data;
-        startQuiz();
+        initQuiz();
       })
-      .catch(err => console.error('Failed to load dictionary:', err));
+      .catch(err => {
+        loadingEl.textContent = 'Failed to load dictionary.';
+        console.error('Dictionary load error:', err);
+      });
 
-    // --- Sprite-sheet setup for RPS ---
+    // --- Initialize Quiz ---
+    function initQuiz() {
+      loadingEl.style.display = 'none';
+      quizContainer.style.display = 'block';
+      rpsContainer.style.display = 'none';
+      score = 0;
+      scoreEl.textContent = `Score: ${score}`;
+      wordEl.addEventListener('click', () => speak(current.en));
+      rpsContinueBtn.addEventListener('click', () => {
+        rpsContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
+        nextQuestion();
+      });
+      nextQuestion();
+    }
+
+    // --- Quiz Logic ---
+    function nextQuestion() {
+      current = dictionary[randInt(dictionary.length)];
+      wordEl.textContent = current.en;
+      speak(current.en);
+
+      const choices = [current.he];
+      const others = dictionary.filter(w => w.he !== current.he);
+      shuffle(others);
+      choices.push(...others.slice(0, 3).map(w => w.he));
+      shuffle(choices);
+
+      optionsEl.innerHTML = '';
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.textContent = choice;
+        btn.className = 'option';
+        btn.onclick = () => handleAnswer(choice);
+        optionsEl.appendChild(btn);
+      });
+      scoreEl.textContent = `Score: ${score}`;
+    }
+
+    function handleAnswer(choice) {
+      if (choice === current.he) {
+        score++;
+        alert('נכון! (Correct!)');
+      } else {
+        alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`);
+      }
+      if (score > 0 && score % 10 === 0) {
+        startRPSChallenge();
+      } else {
+        nextQuestion();
+      }
+    }
+
+    // --- RPS Setup ---
     const sheetImg = new Image();
-    sheetImg.src = 'file_00000000d81c61f79688983c0590d134.png';
+    sheetImg.src = './file_00000000d81c61f79688983c0590d134.png';
     let sheetW, sheetH, cellW, cellH;
     sheetImg.onload = () => {
       sheetW = sheetImg.naturalWidth;
@@ -69,97 +159,53 @@
       cellH = sheetH / 4;
     };
 
-    // Elements
-    const wordEl = document.getElementById('word');
-    const optionsEl = document.getElementById('options');
-    const scoreEl = document.getElementById('score');
-    const quizContainer = document.getElementById('quiz-container');
-    const rpsContainer = document.getElementById('rps-container');
-    const rpsOptions = document.getElementById('rps-options');
-    const rpsResult = document.getElementById('rps-result');
-    const rpsContinueBtn = document.getElementById('rps-continue');
-
-    let score = 0;
-    let current;
-
-    function randInt(n) { return Math.floor(Math.random() * n); }
-    function shuffle(arr) { for (let i = arr.length-1; i>0; i--) { const j=randInt(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; }}
-
-    function startQuiz() {
-      nextQuestion();
-      wordEl.addEventListener('click', () => speak(current.en));
-      rpsContinueBtn.addEventListener('click', () => { rpsContainer.style.display='none'; nextQuestion(); });
-    }
-
-    function nextQuestion() {
-      quizContainer.style.display='block';
-      current = dictionary[randInt(dictionary.length)];
-      wordEl.textContent = current.en;
-      speak(current.en);
-
-      // correct + 3 random wrong
-      const choices = [current.he];
-      const others = dictionary.filter(w=>w.he!==current.he);
-      shuffle(others);
-      choices.push(...others.slice(0,3).map(w=>w.he));
-      shuffle(choices);
-
-      optionsEl.innerHTML='';
-      choices.forEach(choice=>{
-        const btn=document.createElement('button');
-        btn.textContent=choice;
-        btn.className='option';
-        btn.onclick=()=>handleAnswer(choice);
-        optionsEl.appendChild(btn);
-      });
-      scoreEl.textContent=`Score: ${score}`;
-    }
-
-    function handleAnswer(choice) {
-      if(choice===current.he){ score++; alert('נכון! (Correct!)'); }
-      else{ alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`); }
-      if(score>0 && score%10===0) startRPSChallenge();
-      else nextQuestion();
-    }
-
-    function speak(text){ if(!('speechSynthesis' in window))return; const utt=new SpeechSynthesisUtterance(text); utt.lang='en-US'; speechSynthesis.speak(utt); }
-
     function startRPSChallenge() {
-      quizContainer.style.display='none';
-      rpsContainer.style.display='block';
-      rpsOptions.innerHTML='';
-      rpsResult.textContent='';
-      rpsContinueBtn.style.display='none';
-      ['rock','paper','scissors'].forEach((w,c)=>{
-        const cv=createSpriteCanvas(0,c);
+      quizContainer.style.display = 'none';
+      rpsContainer.style.display = 'block';
+      rpsOptions.innerHTML = '';
+      rpsResult.textContent = '';
+      ['rock','paper','scissors'].forEach((weapon, col) => {
+        const cv = createSpriteCanvas(0, col);
         cv.classList.add('rps-option');
-        cv.dataset.weapon=w;
-        cv.onclick=()=>handleRPSChoice(w);
+        cv.dataset.weapon = weapon;
+        cv.onclick = () => handleRPSChoice(weapon);
         rpsOptions.appendChild(cv);
       });
     }
 
-    function createSpriteCanvas(row,col){
-      const cv=document.createElement('canvas');cv.width=64;cv.height=64;
-      const ctx=cv.getContext('2d');
-      if(cellW&&cellH) ctx.drawImage(sheetImg,col*cellW,row*cellH,cellW,cellH,0,0,cv.width,cv.height);
+    function createSpriteCanvas(row, col) {
+      const cv = document.createElement('canvas');
+      cv.width = 64;
+      cv.height = 64;
+      const ctx = cv.getContext('2d');
+      if (cellW && cellH) {
+        ctx.drawImage(sheetImg, col * cellW, row * cellH, cellW, cellH, 0, 0, cv.width, cv.height);
+      }
       return cv;
     }
 
     function handleRPSChoice(userWeapon) {
-      const userCol=['rock','paper','scissors'].indexOf(userWeapon);
-      const compRow=randInt(3)+1, compCol=randInt(3);
-      const compWeapon=['rock','paper','scissors'][compCol];
-      let res;
-      if(userCol===compCol) res="It's a tie!";
-      else if((userWeapon==='rock'&&compWeapon==='scissors')||(userWeapon==='paper'&&compWeapon==='rock')||(userWeapon==='scissors'&&compWeapon==='paper')) res='You won!';
-      else res='You lost!';
-      rpsOptions.innerHTML='';
-      const udiv=document.createElement('div'); udiv.innerHTML='<h3>Your choice:</h3>'; udiv.appendChild(createSpriteCanvas(0,userCol));
-      const cdiv=document.createElement('div'); cdiv.innerHTML="<h3>Computer's choice:</h3>"; cdiv.appendChild(createSpriteCanvas(compRow,compCol));
-      rpsOptions.appendChild(udiv); rpsOptions.appendChild(cdiv);
-      rpsResult.textContent=res;
-      rpsContinueBtn.style.display='block';
+      const userCol = ['rock','paper','scissors'].indexOf(userWeapon);
+      const compRow = randInt(3) + 1;
+      const compCol = randInt(3);
+      const compWeapon = ['rock','paper','scissors'][compCol];
+
+      let resultText;
+      if (userCol === compCol) resultText = "It's a tie!";
+      else if ((userWeapon==='rock'&&compWeapon==='scissors')||(userWeapon==='paper'&&compWeapon==='rock')||(userWeapon==='scissors'&&compWeapon==='paper')) resultText = 'You won!';
+      else resultText = 'You lost!';
+
+      rpsOptions.innerHTML = '';
+      const udiv = document.createElement('div');
+      udiv.innerHTML = '<h3>Your choice:</h3>';
+      udiv.appendChild(createSpriteCanvas(0, userCol));
+      const cdiv = document.createElement('div');
+      cdiv.innerHTML = '<h3>Computer\'s choice:</h3>';
+      cdiv.appendChild(createSpriteCanvas(compRow, compCol));
+      rpsOptions.appendChild(udiv);
+      rpsOptions.appendChild(cdiv);
+      rpsResult.textContent = resultText;
+      rpsContinueBtn.style.display = 'block';
     }
   </script></body>
 </html>
