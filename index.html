@@ -131,7 +131,9 @@ canvas {
     <div id="rps-options"></div>
     <div id="rps-result"></div>
     <button id="rps-continue">Continue Quiz</button>
-  </div>  <script>
+  </div>  <!-- RPS music (place rps_theme.mid in root) --><audio id="rps-music" src="./rps_theme.mid" loop preload="auto"></audio>
+
+  <script>
     /* Utility functions */
     function randInt(max) {
       return Math.floor(Math.random() * max);
@@ -210,6 +212,7 @@ canvas {
     const rpsOptions = document.getElementById('rps-options');
     const rpsResult = document.getElementById('rps-result');
     const rpsContinueBtn = document.getElementById('rps-continue');
+    const rpsMusic = document.getElementById('rps-music');
 
     let score = 0;
     let current;
@@ -221,6 +224,7 @@ canvas {
       rpsContainer.style.display = 'none';
       wordEl.addEventListener('click', () => speak(current.en));
       rpsContinueBtn.addEventListener('click', () => {
+        rpsMusic.pause(); rpsMusic.currentTime = 0;
         rpsContainer.style.display = 'none';
         quizContainer.style.display = 'block';
         nextQuestion();
@@ -282,6 +286,7 @@ canvas {
       rpsContainer.style.display = 'block';
       rpsOptions.innerHTML = '';
       rpsResult.textContent = '';
+      rpsMusic.play();
 
       ['rock', 'paper', 'scissors'].forEach((weapon, idx) => {
         const canvas = document.createElement('canvas');
