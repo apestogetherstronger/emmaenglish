@@ -331,6 +331,8 @@ canvas {
       rpsOptions.appendChild(userDiv);
       rpsOptions.appendChild(compDiv);
       rpsResult.textContent = resultText;
+      speak(resultText);
+      if (resultText === 'You won!') showFireworks();
     }
 
     /* Utility: create a canvas slice from sprite sheet */
