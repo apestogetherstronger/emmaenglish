@@ -222,6 +222,7 @@ canvas {
       wordEl.addEventListener('click', () => speak(current.en));
       rpsContinueBtn.addEventListener('click', () => {
         rpsContainer.style.display = 'none';
+        quizContainer.style.display = 'block';
         nextQuestion();
       });
       nextQuestion();
@@ -307,17 +308,14 @@ canvas {
       let resultText;
       if (userIdx === compIdx) {
         resultText = "It's a tie!";
-        speak('It\'s a tie!');
       } else if (
         (userWeapon === 'rock' && compWeapon === 'scissors') ||
         (userWeapon === 'paper' && compWeapon === 'rock') ||
         (userWeapon === 'scissors' && compWeapon === 'paper')
       ) {
         resultText = 'You won!';
-        speak('You won!');
       } else {
         resultText = 'You lost!';
-        speak('You lost');
       }
 
       // Show choices & result
