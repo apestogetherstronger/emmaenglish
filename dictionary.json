@@ -188,5 +188,10 @@
   { "en": "goat",          "he": "עז" },
   { "en": "hippo",          "he": "היפופוטם" },
   { "en": "horse",          "he": "סוס" },
+  { "en": "lizard",          "he": "לטאה" },
+  { "en": "mouse",          "he": "עכבר" },
+  { "en": "panda",          "he": "פנדה" },
+  { "en": "pet",          "he": "חיית מחמד" },
+  { "en": "sheep",          "he": "כבשה" },
   { "en": "ceremony",        "he": "טקס" }
 ]
