@@ -193,5 +193,14 @@
   { "en": "panda",          "he": "פנדה" },
   { "en": "pet",          "he": "חיית מחמד" },
   { "en": "sheep",          "he": "כבשה" },
+  { "en": "snake",          "he": "נחש" },
+  { "en": "spider",          "he": "עכביש" },
+  { "en": "tail",          "he": "זנב" },
+  { "en": "tiger",          "he": "נמר" },
+  { "en": "arm",          "he": "זרוע" },
+  { "en": "body",          "he": "גוף" },
+  { "en": "face",          "he": "פרצוף" },
+  { "en": "foot",          "he": "רגל" },
+  { "en": "hair",          "he": "שיער" },
   { "en": "ceremony",        "he": "טקס" }
 ]
