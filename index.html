@@ -4,18 +4,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>English-Hebrew Quiz with Mini-Games</title>
   <style>
-    body { font-family: Arial, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; margin:0; background: linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%); overflow:hidden; }
-    .container { background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:300px; margin:20px; display:none; text-align:center; }
-    #loading { font-size:18px; color:#555; }
-    #word { font-size:24px; margin-bottom:15px; cursor:pointer; }
-    .option, .rps-option, .memory-card, .mole { margin:10px auto; display:block; border:none; border-radius:4px; width:100%; font-size:18px; cursor:pointer; text-align:center; }
-    #score { margin-top:10px; font-size:18px; }
-    #rps-options,#memory-grid,#wam-grid { display:flex; flex-wrap:wrap; justify-content:space-around; }
-    canvas { cursor:pointer; }
-    #rps-result,#memory-result,#wam-result { font-size:20px; font-weight:bold; margin-top:10px; }
-    #fireworks-overlay { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:1000; }
-    .particle { position:absolute; border-radius:50%; animation:firework 1s ease-out forwards; }
-    @keyframes firework { 0%{transform:translateY(0) scale(0.5);opacity:1;}100%{transform:translateY(-200px) scale(2);opacity:0;} }
+    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); overflow: hidden; }
+    .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 300px; margin: 20px; display: none; text-align: center; }
+    #loading { font-size: 18px; color: #555; }
+    #word { font-size: 24px; margin-bottom: 15px; cursor: pointer; }
+    .option, .rps-option, .memory-card, .mole { margin: 10px auto; display: block; border: none; border-radius: 4px; width: 100%; font-size: 18px; cursor: pointer; text-align: center; }
+    #score { margin-top: 10px; font-size: 18px; }
+    #rps-options, #memory-grid, #wam-grid { display: flex; flex-wrap: wrap; justify-content: space-around; }
+    canvas { cursor: pointer; }
+    #rps-result, #memory-result, #wam-result { font-size: 20px; font-weight: bold; margin-top: 10px; }
+    .particle { position: absolute; border-radius: 50%; animation: firework 1s ease-out forwards; }
+    @keyframes firework { 0% { transform: translateY(0) scale(0.5); opacity:1; } 100% { transform: translateY(-200px) scale(2); opacity:0; } }
+    #fireworks-overlay { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:1000; }
   </style>
 </head>
 <body>
@@ -41,62 +41,163 @@
   </div>  <!-- Audio --><audio id="rps-music" src="./war_game4.mp3" loop preload="auto"></audio>
 
   <script>
-    /* Utils */
-    function randInt(n){return Math.floor(Math.random()*n)}
-    function shuffle(a){for(let i=a.length-1;i>0;i--){let j=randInt(i+1);[a[i],a[j]]=[a[j],a[i]];}}
-    function speak(t){if(!speechSynthesis)return;let u=new SpeechSynthesisUtterance(t);u.lang='en-US';speechSynthesis.speak(u)}
-    function showFireworks(){let o=document.createElement('div');o.id='fireworks-overlay';document.body.append(o);for(let i=0;i<20;i++){let p=document.createElement('div');p.className='particle';let s=randInt(8)+8;p.style.width=p.style.height=s+'px';p.style.left=randInt(window.innerWidth)+'px';p.style.top=window.innerHeight+'px';p.style.backgroundColor=`hsl(${randInt(360)},70%,60%)`;o.append(p);}setTimeout(()=>o.remove(),1000)}
+    /* Utility functions */
+    function randInt(n) { return Math.floor(Math.random() * n); }
+    function shuffle(a) { for(let i=a.length-1;i>0;i--){ let j = randInt(i+1); [a[i],a[j]] = [a[j],a[i]]; } }
+    function speak(text) { if(!('speechSynthesis' in window)) return; let u=new SpeechSynthesisUtterance(text); u.lang='en-US'; speechSynthesis.speak(u); }
+    function showFireworks() { const overlay=document.createElement('div'); overlay.id='fireworks-overlay'; document.body.append(overlay);
+      for(let i=0;i<20;i++){ const p=document.createElement('div'); p.className='particle'; let s=randInt(8)+8; p.style.width=p.style.height=s+'px'; p.style.left=randInt(window.innerWidth)+'px'; p.style.top=window.innerHeight+'px'; p.style.backgroundColor=`hsl(${randInt(360)},70%,60%)`; overlay.append(p); }
+      setTimeout(()=>overlay.remove(),1000);
+    }
 
-    /* Fetch dictionary */
-    let dictionary=[],score=0,totalQuestions=0;
-    fetch('dictionary.json').then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{dictionary=d;initQuiz()}).catch(e=>{document.getElementById('loading').textContent='Failed to load dictionary.'})
+    /* Load dictionary */
+    let dictionary=[], score=0, totalQuestions=0, current;
+    fetch('dictionary.json')
+      .then(res => { if(!res.ok) throw new Error(res.status); return res.json(); })
+      .then(data => { dictionary=data; initQuiz(); })
+      .catch(err => { console.error('Load error:',err); document.getElementById('loading').textContent='Failed to load dictionary.'; });
 
     /* Sprite sheet */
-    const sheet=new Image();sheet.src='./file_00000000d81c61f79688983c0590d134.png';let cellW,cellH;
-    sheet.onload=()=>{cellW=sheet.naturalWidth/3;cellH=sheet.naturalHeight/4}
+    const sheet=new Image(); sheet.src='./file_00000000d81c61f79688983c0590d134.png'; let cellW, cellH;
+    sheet.onload = ()=> { cellW = sheet.naturalWidth/3; cellH = sheet.naturalHeight/4; };
 
-    /* Elements */
+    /* DOM elements */
     const loadingEl=document.getElementById('loading');
-    const quizEl=document.getElementById('quiz-container');
-    const wordEl=document.getElementById('word');
-    const optsEl=document.getElementById('options');
-    const scoreEl=document.getElementById('score');
-    const rpsEl=document.getElementById('rps-container');const rpsOpts=document.getElementById('rps-options');const rpsRes=document.getElementById('rps-result');const rpsCont=document.getElementById('rps-continue');
-    const memEl=document.getElementById('memory-container');const memGrid=document.getElementById('memory-grid');const memRes=document.getElementById('memory-result');const memCont=document.getElementById('memory-continue');
-    const wamEl=document.getElementById('wam-container');const wamGrid=document.getElementById('wam-grid');const wamRes=document.getElementById('wam-result');const wamCont=document.getElementById('wam-continue');
+    const quizEl=document.getElementById('quiz-container'); const wordEl=document.getElementById('word'); const optsEl=document.getElementById('options'); const scoreEl=document.getElementById('score');
+    const rpsEl=document.getElementById('rps-container'); const rpsOpts=document.getElementById('rps-options'); const rpsRes=document.getElementById('rps-result'); const rpsCont=document.getElementById('rps-continue');
+    const memEl=document.getElementById('memory-container'); const memGrid=document.getElementById('memory-grid'); const memRes=document.getElementById('memory-result'); const memCont=document.getElementById('memory-continue');
+    const wamEl=document.getElementById('wam-container'); const wamGrid=document.getElementById('wam-grid'); const wamRes=document.getElementById('wam-result'); const wamCont=document.getElementById('wam-continue');
     const rpsMusic=document.getElementById('rps-music');
 
-    let current;
+    /* Initialize quiz */
+    function initQuiz() {
+      loadingEl.style.display='none'; quizEl.style.display='block';
+      wordEl.onclick = ()=> speak(current.en);
+      rpsCont.onclick = resumeQuiz;
+      memCont.onclick = resumeQuiz;
+      wamCont.onclick = resumeQuiz;
+      nextQuestion();
+    }
 
-    /* Init */
-    function initQuiz(){loadingEl.style.display='none';quizEl.style.display='block';wordEl.onclick=()=>speak(current.en);rpsCont.onclick=resQuiz;memCont.onclick=resQuiz;wamCont.onclick=resQuiz;nextQuestion()}
+    /* Next question */
+    function nextQuestion() {
+      current = dictionary[randInt(dictionary.length)];
+      wordEl.textContent = current.en;
+      speak(current.en);
+      let choices=[current.he];
+      const others = dictionary.filter(w=>w.he!==current.he);
+      shuffle(others);
+      choices.push(...others.slice(0,6).map(w=>w.he));
+      shuffle(choices);
+      const cols = choices.map((_,i)=>`hsl(${Math.round(i*360/choices.length)},70%,80%)`);
+      shuffle(cols);
+      optsEl.innerHTML='';
+      choices.forEach((c,i)=>{
+        const btn=document.createElement('button'); btn.className='option'; btn.textContent=c; btn.style.backgroundColor=cols[i]; btn.onclick=()=>handleAnswer(c); optsEl.append(btn);
+      });
+      scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
+      quizEl.style.display='block'; rpsEl.style.display='none'; memEl.style.display='none'; wamEl.style.display='none';
+    }
 
-    /* Next QA */
-    function nextQuestion(){current=dictionary[randInt(dictionary.length)];wordEl.textContent=current.en;speak(current.en);
-      let choices=[current.he];let others=dictionary.filter(w=>w.he!==current.he);shuffle(others);choices.push(...others.slice(0,6).map(w=>w.he));shuffle(choices);
-      const cols=choices.map((_,i)=>`hsl(${Math.round(i*360/choices.length)},70%,80%)`);shuffle(cols);
-      optsEl.innerHTML='';choices.forEach((c,i)=>{let b=document.createElement('button');b.className='option';b.textContent=c;b.style.backgroundColor=cols[i];b.onclick=()=>handleAnswer(c);optsEl.append(b)});
-      scoreEl.textContent=`Score: ${score} / ${totalQuestions}` }
+    /* Handle answer */
+    function handleAnswer(choice) {
+      totalQuestions++;
+      if(choice===current.he) {
+        score++; speak('correct'); showFireworks();
+        if(score%5===0) return startMiniGame();
+        setTimeout(nextQuestion,500);
+      } else {
+        alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`);
+        setTimeout(nextQuestion,0);
+      }
+      scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
+    }
 
-    /* Answer */
-    function handleAnswer(choice){totalQuestions++;if(choice===current.he){score++;speak('correct');showFireworks();if(score%5===0)return startMiniGame();setTimeout(nextQuestion,500);}else{alert(`לא נכון. (Incorrect.)\nCorrect: ${current.he}`);setTimeout(nextQuestion,0);}scoreEl.textContent=`Score: ${score} / ${totalQuestions}`}
+    /* Mini-game selector */
+    function startMiniGame() {
+      quizEl.style.display='none';
+      const games = ['rps','memory','wam'];
+      const choice = games[randInt(games.length)];
+      if(choice==='rps') startRPS();
+      else if(choice==='memory') startMemory();
+      else startWAM();
+    }
 
-    /* Random mini-game */
-    function startMiniGame(){quizEl.style.display='none';const g=['rps','mem','wam'][randInt(3)];if(g==='rps')startRPS();else if(g==='mem')startMemory();else startWAM();}
+    /* Resume quiz */
+    function resumeQuiz() {
+      rpsMusic.pause(); rpsMusic.currentTime = 0;
+      rpsEl.style.display='none'; memEl.style.display='none'; wamEl.style.display='none';
+      quizEl.style.display='block';
+      nextQuestion();
+    }
 
-    /* RPS */
-    function startRPS(){rpsOpts.innerHTML='';rpsRes.textContent='';rpsEl.style.display='block';rpsMusic.play();['rock','paper','scissors'].forEach((w,i)=>{let c=document.createElement('canvas');c.width=c.height=64;if(cellW){let ctx=c.getContext('2d');ctx.drawImage(sheet,i*cellW,0,cellW,cellH,0,0,64,64);}c.className='rps-option';c.dataset.weapon=w;c.onclick=()=>rpsChoice(w);rpsOpts.append(c)});}
-    function rpsChoice(u){let ui=['rock','paper','scissors'].indexOf(u);let ci=randInt(3);let cw=['rock','paper','scissors'][ci];let res=(ui===ci?'Tie':(u==='rock'&&cw==='scissors'||u==='paper'&&cw==='rock'||u==='scissors'&&cw==='paper')?'You won!':'You lost!');rpsOpts.innerHTML='';let ud=document.createElement('div');ud.innerHTML='<h3>Your:</h3>'+canvasHTML(0,ui);let cd=document.createElement('div');cd.innerHTML="<h3>Comp:</h3>"+canvasHTML(1,ci);rpsOpts.append(ud,cd);rpsRes.textContent=res;speak(res);if(res==='You won!')showFireworks();}
-    function canvasHTML(row,col){let c=document.createElement('canvas');c.width=c.height=64;let ctx=c.getContext('2d');ctx.drawImage(sheet,col*cellW,row*cellH,cellW,cellH,0,0,64,64);return c.outerHTML;}
-    function resQuiz(){rpsMusic.pause();rpsMusic.currentTime=0;rpsEl.style.display='none';nextQuestion();quizEl.style.display='block';}
+    /* RPS game */
+    function startRPS() {
+      rpsOpts.innerHTML=''; rpsRes.textContent=''; rpsEl.style.display='block'; rpsMusic.play();
+      ['rock','paper','scissors'].forEach((w,i)=>{
+        const cv=document.createElement('canvas'); cv.width=cv.height=64;
+        if(cellW) { const ctx=cv.getContext('2d'); ctx.drawImage(sheet,i*cellW,0,cellW,cellH,0,0,64,64); }
+        cv.className='rps-option'; cv.onclick=()=>rpsChoice(w);
+        rpsOpts.append(cv);
+      });
+    }
+    function rpsChoice(user) {
+      const idxU=['rock','paper','scissors'].indexOf(user);
+      const idxC=randInt(3);
+      const comp=['rock','paper','scissors'][idxC];
+      let res;
+      if(idxU===idxC) res="It's a tie!";
+      else if((user==='rock'&&comp==='scissors')||(user==='paper'&&comp==='rock')||(user==='scissors'&&comp==='paper')) res='You won!';
+      else res='You lost!';
+      rpsOpts.innerHTML='';
+      displayCanvasPair(0, idxU);
+      displayCanvasPair(1, idxC);
+      rpsRes.textContent=res; speak(res); if(res==='You won!') showFireworks();
+    }
+    function displayCanvasPair(row,col) { const div=document.createElement('div'); const cv=document.createElement('canvas'); cv.width=cv.height=64; const ctx=cv.getContext('2d'); ctx.drawImage(sheet,col*cellW,row*cellH,cellW,cellH,0,0,64,64); div.append(cv); rpsOpts.append(div); }
 
-    /* Memory */
-    function startMemory(){memGrid.innerHTML='';memRes.textContent='';memEl.style.display='block';let imgs=[];for(let row=0;row<2;row++)for(let col=0;col<3;col++){imgs.push({row:0,col:col});imgs.push({row:0,col:col,mir:true});}shuffle(imgs);let first=null;let matched=0;imgs.forEach((i,j)=>{let card=document.createElement('canvas');card.width=card.height=64;card.className='memory-card';card.style.background='#ccc';card.onclick=()=>{if(card.flipped)return;flip();};function flip(){let ctx=card.getContext('2d');card.flipped=true;ctx.clearRect(0,0,64,64);ctx.save();if(i.mir){ctx.scale(-1,1);ctx.translate(-64,0);}ctx.drawImage(sheet,i.col*cellW,i.row*cellH,cellW,cellH,0,0,64,64);ctx.restore();if(!first){first={i,card};}else{if(i.row===first.i.row&&i.col===first.i.col&&i.mir===first.i.mir){matched+=2;if(matched===imgs.length){memRes.textContent='All matched!';speak('Well done');showFireworks();}first=null;}else{setTimeout(()=>{card.getContext('2d').clearRect(0,0,64,64);card.flipped=false;first.card.getContext('2d').clearRect(0,0,64,64);first.card.flipped=false;first=null;},700);} }}memGrid.append(card);});}
+    /* Memory game */
+    function startMemory() {
+      memGrid.innerHTML=''; memRes.textContent=''; memEl.style.display='block';
+      let cards=[];
+      for(let i=0;i<6;i++){ cards.push(i); cards.push(i);} shuffle(cards);
+      let first=null, matched=0;
+      cards.forEach(v=>{
+        const cv=document.createElement('canvas'); cv.width=cv.height=64; cv.className='memory-card';
+        cv.onclick=()=>flip(v,cv);
+        memGrid.append(cv);
+      });
+      function flip(val,cv) {
+        const ctx=cv.getContext('2d'); ctx.clearRect(0,0,64,64);
+        ctx.drawImage(sheet,val*cellW,0,cellW,cellH,0,0,64,64);
+        cv.flipped=true;
+        if(!first) first={val,cv};
+        else {
+          if(first.val===val) { matched+=2; if(matched===cards.length){ memRes.textContent='All matched!'; speak('Well done'); showFireworks(); }}
+          else setTimeout(()=>{ first.cv.getContext('2d').clearRect(0,0,64,64); first.cv.flipped=false; ctx.clearRect(0,0,64,64); cv.flipped=false; },700);
+          first=null;
+        }
+      }
+    }
 
-    memCont.onclick=resQuiz;
+    /* Whack-a-Mole game */
+    function startWAM() {
+      wamGrid.innerHTML=''; wamRes.textContent=''; wamEl.style.display='block';
+      for(let i=0;i<3;i++){ const hole=document.createElement('div'); hole.style.width=hole.style.height='64px'; wamGrid.append(hole);} 
+      let rounds=10, count=0;
+      const interval=setInterval(()=>{
+        if(count++>=rounds){ clearInterval(interval); wamRes.textContent='Game over'; speak('Game over'); return; }
+        [...wamGrid.children].forEach(h=>h.innerHTML='');
+        const idx=randInt(3), val=randInt(3);
+        const hole=wamGrid.children[idx];
+        const cv=document.createElement('canvas'); cv.width=cv.height=64;
+        const ctx=cv.getContext('2d'); ctx.drawImage(sheet,val*cellW,0,cellW,cellH,0,0,64,64);
+        cv.className='mole'; cv.onclick=()=>{ speak('hit'); showFireworks(); hole.innerHTML=''; };
+        hole.append(cv);
+      },800);
+    }
 
-    /* Whack-a-Mole */
-    function startWAM(){wamGrid.innerHTML='';wamRes.textContent='';wamEl.style.display='block';let holes=3;let rounds=10;let done=0;for(let h=0;h<holes;h++){let hole=document.createElement('div');hole.style.width='64px';hole.style.height='64px';wamGrid.append(hole);}let interval=setInterval(()=>{if(done++>=rounds){clearInterval(interval);wamRes.textContent='Game over';speak('Game over');return;}let holeIndex=randInt(holes);let hole=wamGrid.children[holeIndex];hole.innerHTML='';let idx=randInt(6);let mir=idx>=3;let col=idx%3;let c=document.createElement('canvas');c.width=c.height=64;let ctx=c.getContext('2d');ctx.save();if(mir){ctx.scale(-1,1);ctx.translate(-64,0);}ctx.drawImage(sheet,col*cellW,0,cellW,cellH,0,0,64,64);ctx.restore();c.className='mole';c.onclick=()=>{speak('hit');showFireworks();hole.innerHTML='';};hole.append(c);},1000);
-    wamCont.onclick=resQuiz;
+    // Start
+    initQuiz();
   </script></body>
 </html>
