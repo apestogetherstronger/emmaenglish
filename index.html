@@ -65,8 +65,70 @@
     function startRPS(){rpsOpts.innerHTML='';rpsRes.textContent='';rpsEl.style.display='block';rpsMusic.play();['rock','paper','scissors'].forEach((w,i)=>{let c=document.createElement('canvas');c.width=c.height=64;if(cellW){let ctx=c.getContext('2d');ctx.drawImage(sheet,i*cellW,0,cellW,cellH,0,0,64,64);}c.className='rps-option';c.onclick=()=>rpsChoice(w);rpsOpts.append(c)});}
     function rpsChoice(u){let ui=['rock','paper','scissors'].indexOf(u),ci=randInt(3),cw=['rock','paper','scissors'][ci];let res=(ui===ci?'Tie':(u==='rock'&&cw==='scissors'||u==='paper'&&cw==='rock'||u==='scissors'&&cw==='paper')?'You won!':'You lost!');rpsOpts.innerHTML='';displayCanvas(0,ui);displayCanvas(1,ci);rpsRes.textContent=res;speak(res);if(res==='You won!')showFireworks();}
     function displayCanvas(r,c){const d=document.createElement('div'),cv=document.createElement('canvas');cv.width=cv.height=64;const ctx=cv.getContext('2d');ctx.drawImage(sheet,c*cellW,r*cellH,cellW,cellH,0,0,64,64);d.append(cv);rpsOpts.append(d);}
-    function startMemory(){memGrid.innerHTML='';memRes.textContent='';memEl.style.display='block';rpsMusic.play();let cards=[];for(let i=0;i<6;i++){cards.push(i);cards.push(i);}shuffle(cards);let first=null,matched=0;cards.forEach(v=>{let cv=document.createElement('canvas');cv.width=cv.height=64;cv.className='memory-card';cv.onclick=()=>flip(v,cv);memGrid.append(cv);});function flip(v,cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,64,64);ctx.drawImage(sheet,v*cellW,0,cellW,cellH,0,0,64,64);cv.flipped=true;if(!first)first={v,cv};else{if(first.v===v){matched+=2;if(matched===cards.length){memRes.textContent='All matched!';speak('Well done');showFireworks();}}else setTimeout(()=>{first.cv.getContext('2d').clearRect(0,0,64,64);first.cv.flipped=false;ctx.clearRect(0,0,64,64);cv.flipped=false;},700);first=null;}}}
-    function startWAM(){wamGrid.innerHTML='';wamRes.textContent='';wamEl.style.display='block';rpsMusic.play();for(let i=0;i<3;i++){const h=document.createElement('div');h.style.width=h.style.height='64px';wamGrid.append(h);}let rounds=10,count=0;const iv=setInterval(()=>{if(count++>=rounds){clearInterval(iv);wamRes.textContent='Game over';speak('Game over');return;}Array.from(wamGrid.children).forEach(h=>h.innerHTML='');const idx=randInt(3),v=randInt(3),hole=wamGrid.children[idx],cv=document.createElement('canvas');cv.width=cv.height=64;const ctx=cv.getContext('2d');ctx.drawImage(sheet,v*cellW,0,cellW,cellH,0,0,64,64);cv.className='mole';cv.onclick=()=>{speak('hit');showFireworks();hole.innerHTML='';};hole.append(cv);},800);}    
+    function startMemory() {
+      memGrid.innerHTML = '';
+      memRes.textContent = '';
+      memEl.style.display = 'block';
+      rpsMusic.play();// Prepare a deck with both user and computer images (2 rows × 3 cols)
+  let cards = [];
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 3; col++) {
+      cards.push({ row, col });
+      cards.push({ row, col });
+    }
+  }
+  shuffle(cards);
+  let firstCard = null;
+  let matched = 0;
+
+  cards.forEach(({ row, col }) => {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 64;
+    cv.className = 'memory-card';
+    cv.dataset.row = row;
+    cv.dataset.col = col;
+    cv.dataset.flipped = 'false';
+    cv.onclick = () => flipCard(cv);
+    memGrid.appendChild(cv);
+  });
+
+  function flipCard(canvas) {
+    if (canvas.dataset.flipped === 'true') return;
+    const ctx = canvas.getContext('2d');
+    const row = +canvas.dataset.row;
+    const col = +canvas.dataset.col;
+    // Show image
+    ctx.clearRect(0, 0, 64, 64);
+    ctx.drawImage(sheet, col * cellW, row * cellH, cellW, cellH, 0, 0, 64, 64);
+    canvas.dataset.flipped = 'true';
+
+    if (!firstCard) {
+      firstCard = canvas;
+    } else {
+      const fRow = +firstCard.dataset.row;
+      const fCol = +firstCard.dataset.col;
+      if (fRow === row && fCol === col) {
+        matched += 2;
+        firstCard = null;
+        if (matched === cards.length) {
+          memRes.textContent = 'All matched!';
+          speak('Well done');
+          showFireworks();
+        }
+      } else {
+        setTimeout(() => {
+          // Hide both cards
+          firstCard.getContext('2d').clearRect(0, 0, 64, 64);
+          firstCard.dataset.flipped = 'false';
+          ctx.clearRect(0, 0, 64, 64);
+          canvas.dataset.flipped = 'false';
+          firstCard = null;
+        }, 700);
+      }
+    }
+  }
+}function startWAM(){wamGrid.innerHTML='';wamRes.textContent='';wamEl.style.display='block';rpsMusic.play();for(let i=0;i<3;i++){const h=document.createElement('div');h.style.width=h.style.height='64px';wamGrid.append(h);}let rounds=10,count=0;const iv=setInterval(()=>{if(count++>=rounds){clearInterval(iv);wamRes.textContent='Game over';speak('Game over');return;}Array.from(wamGrid.children).forEach(h=>h.innerHTML='');const idx=randInt(3),v=randInt(3),hole=wamGrid.children[idx],cv=document.createElement('canvas');cv.width=cv.height=64;const ctx=cv.getContext('2d');ctx.drawImage(sheet,v*cellW,0,cellW,cellH,0,0,64,64);cv.className='mole';cv.onclick=()=>{speak('hit');showFireworks();hole.innerHTML='';};hole.append(cv);},800);}
+
   </script>
 </body>
 </html>
