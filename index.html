@@ -111,10 +111,15 @@
         matched += 2;
         firstCard = null;
         if (matched === cards.length) {
-          memRes.textContent = 'All matched!';
-          speak('Well done');
-          showFireworks();
-        }
+        memRes.textContent = 'All matched!';
+        speak('Well done');
+        showFireworks();
+        // After 1 second, return to quiz
+        setTimeout(() => {
+          memEl.style.display = 'none';
+          resumeQuiz();
+        }, 1000);
+      }
       } else {
         setTimeout(() => {
           // Hide both cards
