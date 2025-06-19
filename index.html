@@ -2,356 +2,101 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>English-Hebrew Quiz with RPS Challenge</title>
+  <title>English-Hebrew Quiz with Mini-Games</title>
   <style>
-    /* Global styles */
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      overflow: hidden;
-    }/* Loading indicator */
-#loading {
-  font-size: 18px;
-  color: #555;
-}
-
-/* Quiz & RPS containers */
-#quiz-container,
-#rps-container {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 300px;
-  margin: 20px;
-  display: none;
-}
-
-#word {
-  font-size: 24px;
-  margin-bottom: 15px;
-  cursor: pointer;
-}
-
-.option,
-.rps-option {
-  display: block;
-  margin: 10px auto;
-  padding: 10px;
-  border: none;
-  border-radius: 4px;
-  width: 100%;
-  font-size: 18px;
-  cursor: pointer;
-  text-align: center;
-  color: #000;
-}
-
-.option:hover,
-.rps-option:hover {
-  opacity: 0.9;
-}
-
-#score {
-  margin-top: 10px;
-  font-size: 18px;
-}
-
-/* RPS layout */
-#rps-options {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 10px;
-}
-
-canvas {
-  width: 64px;
-  height: 64px;
-  cursor: pointer;
-}
-
-#rps-result {
-  font-size: 20px;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-#rps-continue {
-  margin-top: 10px;
-  padding: 8px 16px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-/* Fireworks overlay */
-#fireworks-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1000;
-}
-
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  animation: firework 1s ease-out forwards;
-}
-
-@keyframes firework {
-  0% {
-    transform: translateY(0) scale(0.5);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-200px) scale(2);
-    opacity: 0;
-  }
-}
-
+    body { font-family: Arial, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; margin:0; background: linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%); overflow:hidden; }
+    .container { background:#fff; padding:20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:300px; margin:20px; display:none; text-align:center; }
+    #loading { font-size:18px; color:#555; }
+    #word { font-size:24px; margin-bottom:15px; cursor:pointer; }
+    .option, .rps-option, .memory-card, .mole { margin:10px auto; display:block; border:none; border-radius:4px; width:100%; font-size:18px; cursor:pointer; text-align:center; }
+    #score { margin-top:10px; font-size:18px; }
+    #rps-options,#memory-grid,#wam-grid { display:flex; flex-wrap:wrap; justify-content:space-around; }
+    canvas { cursor:pointer; }
+    #rps-result,#memory-result,#wam-result { font-size:20px; font-weight:bold; margin-top:10px; }
+    #fireworks-overlay { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:1000; }
+    .particle { position:absolute; border-radius:50%; animation:firework 1s ease-out forwards; }
+    @keyframes firework { 0%{transform:translateY(0) scale(0.5);opacity:1;}100%{transform:translateY(-200px) scale(2);opacity:0;} }
   </style>
-</head><body>
-  <!-- Loading indicator -->
-  <div id="loading">Loading quiz...</div>  <!-- Quiz container -->  <div id="quiz-container">
+</head>
+<body>
+  <div id="loading">Loading quiz...</div>  <!-- Quiz -->  <div id="quiz-container" class="container">
     <div id="word" title="Click to replay pronunciation"></div>
     <div id="options"></div>
     <div id="score">Score: 0 / 0</div>
-  </div>  <!-- Rock-Paper-Scissors container -->  <div id="rps-container">
-    <h2>Rock Paper Scissors Challenge!</h2>
+  </div>  <!-- Rock-Paper-Scissors -->  <div id="rps-container" class="container">
+    <h2>Rock Paper Scissors!</h2>
     <div id="rps-options"></div>
     <div id="rps-result"></div>
     <button id="rps-continue">Continue Quiz</button>
-  </div>  <!-- RPS music (place rps_theme.mid in root) --><audio id="rps-music" src="./war_game4.mp3" loop preload="auto"></audio>
+  </div>  <!-- Memory Match -->  <div id="memory-container" class="container">
+    <h2>Memory Match!</h2>
+    <div id="memory-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+    <div id="memory-result"></div>
+    <button id="memory-continue">Continue Quiz</button>
+  </div>  <!-- Whack-a-Mole -->  <div id="wam-container" class="container">
+    <h2>Whack-a-Mole!</h2>
+    <div id="wam-grid" style="display:flex;justify-content:space-around;"></div>
+    <div id="wam-result"></div>
+    <button id="wam-continue">Continue Quiz</button>
+  </div>  <!-- Audio --><audio id="rps-music" src="./war_game4.mp3" loop preload="auto"></audio>
 
   <script>
-    /* Utility functions */
-    function randInt(max) {
-      return Math.floor(Math.random() * max);
-    }
+    /* Utils */
+    function randInt(n){return Math.floor(Math.random()*n)}
+    function shuffle(a){for(let i=a.length-1;i>0;i--){let j=randInt(i+1);[a[i],a[j]]=[a[j],a[i]];}}
+    function speak(t){if(!speechSynthesis)return;let u=new SpeechSynthesisUtterance(t);u.lang='en-US';speechSynthesis.speak(u)}
+    function showFireworks(){let o=document.createElement('div');o.id='fireworks-overlay';document.body.append(o);for(let i=0;i<20;i++){let p=document.createElement('div');p.className='particle';let s=randInt(8)+8;p.style.width=p.style.height=s+'px';p.style.left=randInt(window.innerWidth)+'px';p.style.top=window.innerHeight+'px';p.style.backgroundColor=`hsl(${randInt(360)},70%,60%)`;o.append(p);}setTimeout(()=>o.remove(),1000)}
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = randInt(i + 1);
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
+    /* Fetch dictionary */
+    let dictionary=[],score=0,totalQuestions=0;
+    fetch('./dictionary.json').then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{dictionary=d;initQuiz()}).catch(e=>{document.getElementById('loading').textContent='Failed to load dictionary.'})
 
-    function speak(text) {
-      if (!('speechSynthesis' in window)) return;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'en-US';
-      speechSynthesis.speak(utter);
-    }
+    /* Sprite sheet */
+    const sheet=new Image();sheet.src='./file_00000000d81c61f79688983c0590d134.png';let cellW,cellH;
+    sheet.onload=()=>{cellW=sheet.naturalWidth/3;cellH=sheet.naturalHeight/4}
 
-    /* Fireworks effect */
-    function showFireworks() {
-      const overlay = document.createElement('div');
-      overlay.id = 'fireworks-overlay';
-      document.body.appendChild(overlay);
+    /* Elements */
+    const loadingEl=document.getElementById('loading');
+    const quizEl=document.getElementById('quiz-container');
+    const wordEl=document.getElementById('word');
+    const optsEl=document.getElementById('options');
+    const scoreEl=document.getElementById('score');
+    const rpsEl=document.getElementById('rps-container');const rpsOpts=document.getElementById('rps-options');const rpsRes=document.getElementById('rps-result');const rpsCont=document.getElementById('rps-continue');
+    const memEl=document.getElementById('memory-container');const memGrid=document.getElementById('memory-grid');const memRes=document.getElementById('memory-result');const memCont=document.getElementById('memory-continue');
+    const wamEl=document.getElementById('wam-container');const wamGrid=document.getElementById('wam-grid');const wamRes=document.getElementById('wam-result');const wamCont=document.getElementById('wam-continue');
+    const rpsMusic=document.getElementById('rps-music');
 
-      for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        const size = randInt(8) + 8;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        particle.style.left = `${randInt(window.innerWidth)}px`;
-        particle.style.top = `${window.innerHeight}px`;
-        particle.style.backgroundColor = `hsl(${randInt(360)}, 70%, 60%)`;
-        overlay.appendChild(particle);
-      }
-
-      setTimeout(() => {
-        document.body.removeChild(overlay);
-      }, 1000);
-    }
-
-    /* Fetch dictionary and initialize quiz */
-    let dictionary = [];
-    fetch('./dictionary.json')
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        dictionary = data;
-        initQuiz();
-      })
-      .catch((err) => {
-        document.getElementById('loading').textContent = 'Failed to load dictionary.';
-        console.error('Dictionary load error:', err);
-      });
-
-    /* Sprite sheet setup for RPS */
-    const sheetImg = new Image();
-    sheetImg.src = './file_00000000d81c61f79688983c0590d134.png';
-    let cellW, cellH;
-
-    sheetImg.onload = () => {
-      cellW = sheetImg.naturalWidth / 3;
-      cellH = sheetImg.naturalHeight / 4;
-    };
-
-    /* DOM elements */
-    const loadingEl = document.getElementById('loading');
-    const quizContainer = document.getElementById('quiz-container');
-    const wordEl = document.getElementById('word');
-    const optionsEl = document.getElementById('options');
-    const scoreEl = document.getElementById('score');
-    const rpsContainer = document.getElementById('rps-container');
-    const rpsOptions = document.getElementById('rps-options');
-    const rpsResult = document.getElementById('rps-result');
-    const rpsContinueBtn = document.getElementById('rps-continue');
-    const rpsMusic = document.getElementById('rps-music');
-
-    let score = 0;
-    let totalQuestions = 0;
     let current;
 
-    /* Initialize quiz */
-    function initQuiz() {
-      loadingEl.style.display = 'none';
-      quizContainer.style.display = 'block';
-      rpsContainer.style.display = 'none';
-      wordEl.addEventListener('click', () => speak(current.en));
-      rpsContinueBtn.addEventListener('click', () => {
-        rpsMusic.pause(); rpsMusic.currentTime = 0;
-        rpsContainer.style.display = 'none';
-        quizContainer.style.display = 'block';
-        nextQuestion();
-      });
-      nextQuestion();
-    }
+    /* Init */
+    function initQuiz(){loadingEl.style.display='none';quizEl.style.display='block';wordEl.onclick=()=>speak(current.en);rpsCont.onclick=resQuiz;memCont.onclick=resQuiz;wamCont.onclick=resQuiz;nextQuestion()}
 
-    /* Load next question */
-    function nextQuestion() {
-      current = dictionary[randInt(dictionary.length)];
-      wordEl.textContent = current.en;
-      speak(current.en);
+    /* Next QA */
+    function nextQuestion(){current=dictionary[randInt(dictionary.length)];wordEl.textContent=current.en;speak(current.en);
+      let choices=[current.he];let others=dictionary.filter(w=>w.he!==current.he);shuffle(others);choices.push(...others.slice(0,6).map(w=>w.he));shuffle(choices);
+      const cols=choices.map((_,i)=>`hsl(${Math.round(i*360/choices.length)},70%,80%)`);shuffle(cols);
+      optsEl.innerHTML='';choices.forEach((c,i)=>{let b=document.createElement('button');b.className='option';b.textContent=c;b.style.backgroundColor=cols[i];b.onclick=()=>handleAnswer(c);optsEl.append(b)});
+      scoreEl.textContent=`Score: ${score} / ${totalQuestions}` }
 
-      // Build 1 correct + 6 wrong options
-      const choices = [current.he];
-      const others = dictionary.filter((item) => item.he !== current.he);
-      shuffle(others);
-      choices.push(...others.slice(0, 6).map((item) => item.he));
-      shuffle(choices);
+    /* Answer */
+    function handleAnswer(choice){totalQuestions++;if(choice===current.he){score++;speak('correct');showFireworks();if(score%5===0)return startMiniGame();setTimeout(nextQuestion,500);}else{alert(`לא נכון. (Incorrect.)\nCorrect: ${current.he}`);setTimeout(nextQuestion,0);}scoreEl.textContent=`Score: ${score} / ${totalQuestions}`}
 
-      // Generate distinct pastel colors
-      const colors = choices.map((_, i) => `hsl(${Math.round((i * 360) / choices.length)}, 70%, 80%)`);
-      shuffle(colors);
+    /* Random mini-game */
+    function startMiniGame(){quizEl.style.display='none';const g=['rps','mem','wam'][randInt(3)];if(g==='rps')startRPS();else if(g==='mem')startMemory();else startWAM();}
 
-      optionsEl.innerHTML = '';
-      choices.forEach((choice, idx) => {
-        const btn = document.createElement('button');
-        btn.className = 'option';
-        btn.textContent = choice;
-        btn.style.backgroundColor = colors[idx];
-        btn.onclick = () => handleAnswer(choice);
-        optionsEl.appendChild(btn);
-      });
+    /* RPS */
+    function startRPS(){rpsOpts.innerHTML='';rpsRes.textContent='';rpsEl.style.display='block';rpsMusic.play();['rock','paper','scissors'].forEach((w,i)=>{let c=document.createElement('canvas');c.width=c.height=64;if(cellW){let ctx=c.getContext('2d');ctx.drawImage(sheet,i*cellW,0,cellW,cellH,0,0,64,64);}c.className='rps-option';c.dataset.weapon=w;c.onclick=()=>rpsChoice(w);rpsOpts.append(c)});}
+    function rpsChoice(u){let ui=['rock','paper','scissors'].indexOf(u);let ci=randInt(3);let cw=['rock','paper','scissors'][ci];let res=(ui===ci?'Tie':(u==='rock'&&cw==='scissors'||u==='paper'&&cw==='rock'||u==='scissors'&&cw==='paper')?'You won!':'You lost!');rpsOpts.innerHTML='';let ud=document.createElement('div');ud.innerHTML='<h3>Your:</h3>'+canvasHTML(0,ui);let cd=document.createElement('div');cd.innerHTML="<h3>Comp:</h3>"+canvasHTML(1,ci);rpsOpts.append(ud,cd);rpsRes.textContent=res;speak(res);if(res==='You won!')showFireworks();}
+    function canvasHTML(row,col){let c=document.createElement('canvas');c.width=c.height=64;let ctx=c.getContext('2d');ctx.drawImage(sheet,col*cellW,row*cellH,cellW,cellH,0,0,64,64);return c.outerHTML;}
+    function resQuiz(){rpsMusic.pause();rpsMusic.currentTime=0;rpsEl.style.display='none';nextQuestion();quizEl.style.display='block';}
 
-      scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
-    }
+    /* Memory */
+    function startMemory(){memGrid.innerHTML='';memRes.textContent='';memEl.style.display='block';let imgs=[];for(let row=0;row<2;row++)for(let col=0;col<3;col++){imgs.push({row:0,col:col});imgs.push({row:0,col:col,mir:true});}shuffle(imgs);let first=null;let matched=0;imgs.forEach((i,j)=>{let card=document.createElement('canvas');card.width=card.height=64;card.className='memory-card';card.style.background='#ccc';card.onclick=()=>{if(card.flipped)return;flip();};function flip(){let ctx=card.getContext('2d');card.flipped=true;ctx.clearRect(0,0,64,64);ctx.save();if(i.mir){ctx.scale(-1,1);ctx.translate(-64,0);}ctx.drawImage(sheet,i.col*cellW,i.row*cellH,cellW,cellH,0,0,64,64);ctx.restore();if(!first){first={i,card};}else{if(i.row===first.i.row&&i.col===first.i.col&&i.mir===first.i.mir){matched+=2;if(matched===imgs.length){memRes.textContent='All matched!';speak('Well done');showFireworks();}first=null;}else{setTimeout(()=>{card.getContext('2d').clearRect(0,0,64,64);card.flipped=false;first.card.getContext('2d').clearRect(0,0,64,64);first.card.flipped=false;first=null;},700);} }}memGrid.append(card);});}
 
-    /* Handle user answer */
-    function handleAnswer(choice) {
-      totalQuestions++;
-      if (choice === current.he) {
-        score++;
-        speak('correct');
-        showFireworks();
-        if (score % 10 === 0) {
-          setTimeout(startRPSChallenge, 1000);
-        } else {
-          setTimeout(nextQuestion, 1000);
-        }
-      } else {
-        alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`);
-        setTimeout(nextQuestion, 0);
-      }
-      scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
-    }
+    memCont.onclick=resQuiz;
 
-    /* Start Rock-Paper-Scissors challenge */
-    function startRPSChallenge() {
-      quizContainer.style.display = 'none';
-      rpsContainer.style.display = 'block';
-      rpsOptions.innerHTML = '';
-      rpsResult.textContent = '';
-      rpsMusic.play();
-
-      ['rock', 'paper', 'scissors'].forEach((weapon, idx) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
-        if (cellW && cellH) {
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(sheetImg, idx * cellW, 0, cellW, cellH, 0, 0, 64, 64);
-        }
-        canvas.className = 'rps-option';
-        canvas.dataset.weapon = weapon;
-        canvas.onclick = () => handleRPSChoice(weapon);
-        rpsOptions.appendChild(canvas);
-      });
-    }
-
-    /* Handle RPS choice */
-    function handleRPSChoice(userWeapon) {
-      const userIdx = ['rock', 'paper', 'scissors'].indexOf(userWeapon);
-      const compRow = randInt(3) + 1;
-      const compIdx = randInt(3);
-      const compWeapon = ['rock', 'paper', 'scissors'][compIdx];
-
-      let resultText;
-      if (userIdx === compIdx) {
-        resultText = "It's a tie!";
-      } else if (
-        (userWeapon === 'rock' && compWeapon === 'scissors') ||
-        (userWeapon === 'paper' && compWeapon === 'rock') ||
-        (userWeapon === 'scissors' && compWeapon === 'paper')
-      ) {
-        resultText = 'You won!';
-        showFireworks();
-      } else {
-        resultText = 'You lost!';
-      }
-
-      // Show choices & result
-      rpsOptions.innerHTML = '';
-      const userDiv = document.createElement('div');
-      userDiv.innerHTML = '<h3>Your choice:</h3>';
-      userDiv.appendChild(createSpriteCanvas(0, userIdx));
-
-      const compDiv = document.createElement('div');
-      compDiv.innerHTML = '<h3>Computer\'s choice:</h3>';
-      compDiv.appendChild(createSpriteCanvas(compRow, compIdx));
-
-      rpsOptions.appendChild(userDiv);
-      rpsOptions.appendChild(compDiv);
-      rpsResult.textContent = resultText;
-      speak(resultText);
-    }
-
-    /* Utility: create a canvas slice from sprite sheet */
-    function createSpriteCanvas(row, col) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 64;
-      canvas.height = 64;
-      if (cellW && cellH) {
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(sheetImg, col * cellW, row * cellH, cellW, cellH, 0, 0, 64, 64);
-      }
-      return canvas;
-    }
+    /* Whack-a-Mole */
+    function startWAM(){wamGrid.innerHTML='';wamRes.textContent='';wamEl.style.display='block';let holes=3;let rounds=10;let done=0;for(let h=0;h<holes;h++){let hole=document.createElement('div');hole.style.width='64px';hole.style.height='64px';wamGrid.append(hole);}let interval=setInterval(()=>{if(done++>=rounds){clearInterval(interval);wamRes.textContent='Game over';speak('Game over');return;}let holeIndex=randInt(holes);let hole=wamGrid.children[holeIndex];hole.innerHTML='';let idx=randInt(6);let mir=idx>=3;let col=idx%3;let c=document.createElement('canvas');c.width=c.height=64;let ctx=c.getContext('2d');ctx.save();if(mir){ctx.scale(-1,1);ctx.translate(-64,0);}ctx.drawImage(sheet,col*cellW,0,cellW,cellH,0,0,64,64);ctx.restore();c.className='mole';c.onclick=()=>{speak('hit');showFireworks();hole.innerHTML='';};hole.append(c);},1000);
+    wamCont.onclick=resQuiz;
   </script></body>
 </html>
