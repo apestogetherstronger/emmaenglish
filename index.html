@@ -125,13 +125,13 @@ canvas {
   <div id="loading">Loading quiz...</div>  <!-- Quiz container -->  <div id="quiz-container">
     <div id="word" title="Click to replay pronunciation"></div>
     <div id="options"></div>
-    <div id="score">Score: 0</div>
+    <div id="score">Score: 0 / 0</div>
   </div>  <!-- Rock-Paper-Scissors container -->  <div id="rps-container">
     <h2>Rock Paper Scissors Challenge!</h2>
     <div id="rps-options"></div>
     <div id="rps-result"></div>
     <button id="rps-continue">Continue Quiz</button>
-  </div>  <!-- RPS music (place rps_theme.mid in root) --><audio id="rps-music" src="./war_game4.mp3" loop preload="auto"></audio>
+  </div>  <!-- RPS music (place rps_theme.mid in root) --><audio id="rps-music" src="./rps_theme.mid" loop preload="auto"></audio>
 
   <script>
     /* Utility functions */
@@ -215,6 +215,7 @@ canvas {
     const rpsMusic = document.getElementById('rps-music');
 
     let score = 0;
+    let totalQuestions = 0;
     let current;
 
     /* Initialize quiz */
@@ -259,14 +260,14 @@ canvas {
         optionsEl.appendChild(btn);
       });
 
-      scoreEl.textContent = `Score: ${score}`;
+      scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
     }
 
     /* Handle user answer */
     function handleAnswer(choice) {
+      totalQuestions++;
       if (choice === current.he) {
         score++;
-        scoreEl.textContent = `Score: ${score}`;
         speak('correct');
         showFireworks();
         if (score % 10 === 0) {
@@ -276,8 +277,9 @@ canvas {
         }
       } else {
         alert(`לא נכון. (Incorrect.)\nהתרגום הנכון של "${current.en}" הוא "${current.he}".`);
-        nextQuestion();
+        setTimeout(nextQuestion, 0);
       }
+      scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
     }
 
     /* Start Rock-Paper-Scissors challenge */
@@ -319,6 +321,7 @@ canvas {
         (userWeapon === 'scissors' && compWeapon === 'paper')
       ) {
         resultText = 'You won!';
+        showFireworks();
       } else {
         resultText = 'You lost!';
       }
@@ -337,7 +340,6 @@ canvas {
       rpsOptions.appendChild(compDiv);
       rpsResult.textContent = resultText;
       speak(resultText);
-      if (resultText === 'You won!') showFireworks();
     }
 
     /* Utility: create a canvas slice from sprite sheet */
