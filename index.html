@@ -49,7 +49,7 @@
 
     /* Fetch dictionary */
     let dictionary=[],score=0,totalQuestions=0;
-    fetch('./dictionary.json').then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{dictionary=d;initQuiz()}).catch(e=>{document.getElementById('loading').textContent='Failed to load dictionary.'})
+    fetch('dictionary.json').then(r=>{if(!r.ok)throw 0;return r.json();}).then(d=>{dictionary=d;initQuiz()}).catch(e=>{document.getElementById('loading').textContent='Failed to load dictionary.'})
 
     /* Sprite sheet */
     const sheet=new Image();sheet.src='./file_00000000d81c61f79688983c0590d134.png';let cellW,cellH;
