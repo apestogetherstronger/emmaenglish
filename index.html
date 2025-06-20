@@ -282,7 +282,7 @@ canvas {
       } else {
         speak(`טעות! התשובה הנכונה היא ${current.he}`, 'he-IL');
         alert(`לא נכון. (Incorrect.)\nCorrect: ${current.he}`);
-        setTimeout(nextQuestion, 500);
+        nextQuestion()
       }
       scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
     }
