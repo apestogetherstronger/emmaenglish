@@ -280,8 +280,7 @@ canvas {
         }
         setTimeout(nextQuestion, 500);
       } else {
-        speak("טעות! התשובה הנכונה היא", 'he-IL');
-        speak(current.he, 'he-IL');
+        speak(`טעות! התשובה הנכונה היא ${current.he}`, 'he-IL');
         alert(`לא נכון. (Incorrect.)\nCorrect: ${current.he}`);
         setTimeout(nextQuestion, 500);
       }
