@@ -234,5 +234,21 @@
   { "en": "war",          "he": "מלחמה" },  
   { "en": "summer",          "he": "קיץ" },  
   { "en": "subscribe",          "he": "להרשם לעדכונים" },
-  { "en": "ceremony",        "he": "טקס" }
+  { "en": "ceremony",        "he": "טקס" },
+  { "en": "saw",        "he": "ראה/מסור" },
+  { "en": "sign",       "he": "שלט/סימן" },
+  { "en": "opened",     "he": "פתח" },
+  { "en": "eyes",       "he": "עיניים" },
+  { "en": "life",       "he": "חיים" },
+  { "en": "demanding",  "he": "דורש" },
+  { "en": "without",    "he": "בלי" },
+  { "en": "understanding", "he": "הבנה" },
+  { "en": "no",         "he": "לא" },
+  { "en": "one's",      "he": "של אף אחד" },
+  { "en": "gonna",      "he": "הולך" },
+  { "en": "drag",       "he": "לגרור" },
+  { "en": "get",        "he": "לקבל" },
+  { "en": "into",       "he": "לתוך" },
+  { "en": "light",      "he": "אור" },
+  { "en": "belong",     "he": "שייך" }
 ]
