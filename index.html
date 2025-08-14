@@ -291,7 +291,7 @@ canvas {
     /*** Choose a Random Mini-Game ***/
     function startMiniGame() {
       quizEl.style.display = 'none';
-      const games = ['rps', 'memory', 'wam'];
+      const games = ['rps', 'wam'];
       const choice = games[randInt(games.length)];
       if (choice === 'rps') startRPS();
       else if (choice === 'memory') startMemory();
