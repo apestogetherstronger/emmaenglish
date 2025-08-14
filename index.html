@@ -253,6 +253,7 @@ canvas {
       choices.forEach((text, idx) => {
         const btn = document.createElement('button');
         btn.className = 'option';
+        btn.height = 100;
         btn.textContent = text;
         btn.style.backgroundColor = colors[idx];
         btn.onclick = () => handleAnswer(text);
@@ -387,7 +388,7 @@ canvas {
 
       cards.forEach(({ row, col }) => {
         const cv = document.createElement('canvas');
-        cv.width = cv.height = 164;
+        cv.width = cv.height = 64;
         cv.className = 'memory-card';
         cv.dataset.row = row;
         cv.dataset.col = col;
