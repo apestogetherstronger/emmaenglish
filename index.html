@@ -250,6 +250,7 @@ canvas {
     function nextQuestion() {
       current = dictionary[randInt(dictionary.length)];
       wordEl.textContent = current.en;
+      wordEl.style.margin = 10px;
       speak(current.en);
 
       // Build options: correct + 6 wrong
