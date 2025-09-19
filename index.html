@@ -412,13 +412,9 @@
 
     /*** Choose a Random Mini-Game ***/
     function startMiniGame() {
-      quizEl.style.display = 'none';
-  const games = ['rps', 'wam', 'pairmatch'];
-  const choice = games[randInt(games.length)];
-  if (choice === 'rps') startRPS();
-  else if (choice === 'memory') startMemory();
-  else if (choice === 'pairmatch') startPairMatch();
-  else startWAM();
+    quizEl.style.display = 'none';
+    // Only enable Pair Match game for now
+    startPairMatch();
     /*** Pair Match Game ***/
     function startPairMatch() {
       pairMatchGrid.innerHTML = '';
@@ -471,10 +467,22 @@
         col2.append(btn);
       });
 
-      pairMatchGrid.append(col1, col2);
+
+  pairMatchGrid.append(col1, col2);
+  pairMatchCont.style.display = 'none'; // Hide continue button always
 
       function select(type, value, btn) {
-        if (locked || btn.disabled) return;
+        if (btn.disabled) return;
+        // If this is a re-click on an error-highlighted button, deselect
+        if (btn.style.backgroundColor === 'rgb(239, 154, 154)') { // #ef9a9a
+          btn.style.backgroundColor = '';
+          if (first && first.btn === btn) {
+            first = null;
+            firstType = null;
+          }
+          pairMatchRes.textContent = '';
+          return;
+        }
         if (!first) {
           first = { value, btn };
           firstType = type;
@@ -496,6 +504,7 @@
             btn.disabled = true;
             first.btn.disabled = true;
             matched++;
+            pairMatchRes.textContent = '';
             if (matched === 6) {
               pairMatchRes.textContent = 'All pairs matched!';
               speak('Well done');
@@ -505,20 +514,22 @@
                 resumeQuiz();
               }, 1200);
             }
+            first = null;
+            firstType = null;
           } else {
             btn.style.backgroundColor = '#ef9a9a';
             first.btn.style.backgroundColor = '#ef9a9a';
-            locked = true;
-            setTimeout(() => {
-              btn.style.backgroundColor = '';
-              first.btn.style.backgroundColor = '';
-              locked = false;
-            }, 800);
+            pairMatchRes.textContent = 'Mistake! Click either word to deselect and try again.';
+            // Allow user to click either error-highlighted button to deselect
+            // Do not reset first/firstType here, wait for user to click
           }
-          first = null;
-          firstType = null;
         }
       }
+      // Always hide continue button when leaving
+      pairMatchCont.onclick = () => {
+        pairMatchEl.style.display = 'none';
+        resumeQuiz();
+      };
     }
     }
 
