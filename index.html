@@ -395,7 +395,7 @@
         score++;
         speak('correct');
         showFireworks();
-        if (score % 10 === 0) {
+        if (score % 2 === 0) {
           startMiniGame();
           scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
           return;
