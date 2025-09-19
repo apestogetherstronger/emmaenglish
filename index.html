@@ -142,12 +142,21 @@
     <button id="memory-continue">Continue Quiz</button>
   </div>
 
+
   <!-- Whack-a-Mole -->
   <div id="wam-container" class="container">
     <h2>Whack-a-Mole!</h2>
     <div id="wam-grid" style="display: flex; justify-content: space-around;"></div>
     <div id="wam-result"></div>
     <button id="wam-continue">Continue Quiz</button>
+  </div>
+
+  <!-- Pair Match Game -->
+  <div id="pairmatch-container" class="container">
+    <h2>Pair the Words!</h2>
+    <div id="pairmatch-grid" style="display: flex; gap: 20px; justify-content: center;"></div>
+    <div id="pairmatch-result"></div>
+    <button id="pairmatch-continue">Continue Quiz</button>
   </div>
 
   <!-- Background Music -->
@@ -290,7 +299,12 @@
     const wamRes = document.getElementById('wam-result');
     const wamCont = document.getElementById('wam-continue');
 
-    const rpsMusic = document.getElementById('rps-music');
+
+  const pairMatchEl = document.getElementById('pairmatch-container');
+  const pairMatchGrid = document.getElementById('pairmatch-grid');
+  const pairMatchRes = document.getElementById('pairmatch-result');
+  const pairMatchCont = document.getElementById('pairmatch-continue');
+  const rpsMusic = document.getElementById('rps-music');
 
     /*** Sprite Sheet Setup ***/
     const sheet = new Image();
@@ -321,9 +335,11 @@
       loadingEl.style.display = 'none';
       quizEl.style.display = 'block';
       wordEl.addEventListener('click', () => speak(current.en));
-      rpsCont.addEventListener('click', resumeQuiz);
-      memCont.addEventListener('click', resumeQuiz);
-      wamCont.addEventListener('click', resumeQuiz);
+
+  rpsCont.addEventListener('click', resumeQuiz);
+  memCont.addEventListener('click', resumeQuiz);
+  wamCont.addEventListener('click', resumeQuiz);
+  pairMatchCont.addEventListener('click', resumeQuiz);
 
       // Clicking the score triggers CSV download (with confirm)
       scoreEl.addEventListener('click', downloadCSV);
@@ -397,11 +413,113 @@
     /*** Choose a Random Mini-Game ***/
     function startMiniGame() {
       quizEl.style.display = 'none';
-      const games = ['rps', 'wam']; // memory is present but not selected here
-      const choice = games[randInt(games.length)];
-      if (choice === 'rps') startRPS();
-      else if (choice === 'memory') startMemory();
-      else startWAM();
+  const games = ['rps', 'wam', 'pairmatch'];
+  const choice = games[randInt(games.length)];
+  if (choice === 'rps') startRPS();
+  else if (choice === 'memory') startMemory();
+  else if (choice === 'pairmatch') startPairMatch();
+  else startWAM();
+    /*** Pair Match Game ***/
+    function startPairMatch() {
+      pairMatchGrid.innerHTML = '';
+      pairMatchRes.textContent = '';
+      pairMatchEl.style.display = 'block';
+      rpsMusic.play();
+
+      // Select 6 random word pairs
+      const pairs = dictionary.slice();
+      shuffle(pairs);
+      const selected = pairs.slice(0, 6);
+      const english = selected.map(w => w.en);
+      const hebrew = selected.map(w => w.he);
+      shuffle(english);
+      shuffle(hebrew);
+
+      // Track matches
+      let matched = 0;
+      let first = null;
+      let firstType = null;
+      let locked = false;
+
+      // Create columns
+      const col1 = document.createElement('div');
+      const col2 = document.createElement('div');
+      col1.style.display = col2.style.display = 'flex';
+      col1.style.flexDirection = col2.style.flexDirection = 'column';
+      col1.style.gap = col2.style.gap = '10px';
+
+      // Helper to disable all buttons
+      function disableAll(disabled) {
+        col1.querySelectorAll('button').forEach(b => b.disabled = disabled);
+        col2.querySelectorAll('button').forEach(b => b.disabled = disabled);
+      }
+
+      // Create English buttons
+      english.forEach(en => {
+        const btn = document.createElement('button');
+        btn.textContent = en;
+        btn.className = 'option';
+        btn.onclick = () => select('en', en, btn);
+        col1.append(btn);
+      });
+      // Create Hebrew buttons
+      hebrew.forEach(he => {
+        const btn = document.createElement('button');
+        btn.textContent = he;
+        btn.className = 'option';
+        btn.onclick = () => select('he', he, btn);
+        col2.append(btn);
+      });
+
+      pairMatchGrid.append(col1, col2);
+
+      function select(type, value, btn) {
+        if (locked || btn.disabled) return;
+        if (!first) {
+          first = { value, btn };
+          firstType = type;
+          btn.style.backgroundColor = '#ffe082';
+        } else if (firstType !== type) {
+          // Check match
+          let en, he;
+          if (type === 'en') {
+            en = value;
+            he = first.value;
+          } else {
+            en = first.value;
+            he = value;
+          }
+          const isMatch = selected.some(pair => pair.en === en && pair.he === he);
+          if (isMatch) {
+            btn.style.backgroundColor = '#a5d6a7';
+            first.btn.style.backgroundColor = '#a5d6a7';
+            btn.disabled = true;
+            first.btn.disabled = true;
+            matched++;
+            if (matched === 6) {
+              pairMatchRes.textContent = 'All pairs matched!';
+              speak('Well done');
+              showFireworks();
+              setTimeout(() => {
+                pairMatchEl.style.display = 'none';
+                resumeQuiz();
+              }, 1200);
+            }
+          } else {
+            btn.style.backgroundColor = '#ef9a9a';
+            first.btn.style.backgroundColor = '#ef9a9a';
+            locked = true;
+            setTimeout(() => {
+              btn.style.backgroundColor = '';
+              first.btn.style.backgroundColor = '';
+              locked = false;
+            }, 800);
+          }
+          first = null;
+          firstType = null;
+        }
+      }
+    }
     }
 
     /*** Resume Quiz ***/
