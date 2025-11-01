@@ -256,12 +256,8 @@
   { "en": "my",         "he": "שלי"  },
   { "en": "you",        "he": "אתה"  },
   { "en": "your",       "he": "שלך"  },
-  { "en": "it",         "he": "זה"
-  },
-  {
-    "en": "we",
-    "he": "אנחנו"
-  },
+  { "en": "it",         "he": "זה" },
+  { "en": "we",         "he": "אנחנו" },
   {
     "en": "you'll",
     "he": "אתה ת"
@@ -269,7 +265,7 @@
   {
     "en": "and",
     "he": "ו"
-  },
+    { "en": "wild",     "he": "פראי" },
   {
     "en": "but",
     "he": "אבל"
@@ -586,5 +582,42 @@
   { "en": "these",      "he": "אלה" },
   { "en": "this",       "he": "זה" },
   { "en": "thousand",   "he": "אלף" },
-  { "en": "alone", "he": "לבד" }, { "en": "believe", "he": "להאמין" }, { "en": "born", "he": "להיוולד" }, { "en": "break", "he": "לשבור" }, { "en": "called", "he": "נקרא" }, { "en": "came", "he": "בא" }, { "en": "child", "he": "ילד" }, { "en": "done", "he": "בוצע / סיים" }, { "en": "dreaming", "he": "לחלום" }, { "en": "far", "he": "רחוק" }, { "en": "fears", "he": "פחדים" }, { "en": "feel", "he": "להרגיש" }, { "en": "finally", "he": "לבסוף" }, { "en": "find", "he": "למצוא" }, { "en": "getting", "he": "לקבל" }, { "en": "ghost", "he": "רוח רפאים" }, { "en": "girl", "he": "נערה / ילדה" }, { "en": "given", "he": "ניתן" }, { "en": "glowing", "he": "זוהר" }, { "en": "going", "he": "ללכת" }, { "en": "golden", "he": "זהוב" }, { "en": "got", "he": "קיבל" }, { "en": "hard", "he": "קשה" }, { "en": "hiding", "he": "להסתתר" }, { "en": "hunters", "he": "ציידים" }, { "en": "kkeuteopsi", "he": "ללא סוף" }, { "en": "know", "he": "לדעת" }, { "en": "lived", "he": "חייתי" }, { "en": "live", "he": "לחיות" }, { "en": "lives", "he": "חיים" }, { "en": "meant", "he": "נועד" }, { "en": "moment", "he": "רגע" }, { "en": "paid", "he": "שולם" }, { "en": "past", "he": "עבר" }, { "en": "patterns", "he": "דפוסים" }, { "en": "place", "he": "מקום" }, { "en": "play", "he": "לשחק" }, { "en": "problem", "he": "בעיה" }, { "en": "put", "he": "לשים" }, { "en": "queen", "he": "מלכה" }, { "en": "shining", "he": "זורח" }, { "en": "sides", "he": "צדדים" }, { "en": "stage", "he": "במה" }, { "en": "strong", "he": "חזק" }, { "en": "throne", "he": "כס מלכות" }, { "en": "time", "he": "זמן" }, { "en": "together", "he": "ביחד" }, { "en": "tried", "he": "ניסה" }, { "en": "two", "he": "שניים" }, { "en": "voices", "he": "קולות" }, { "en": "waited", "he": "להמתין" }, { "en": "walls", "he": "קירות" }, { "en": "wild", "he": "פראי" }
+  { "en": "alone", "he": "לבד" }, { "en": "believe", "he": "להאמין" }, { "en": "born", "he": "להיוולד" }, { "en": "break", "he": "לשבור" }, { "en": "called", "he": "נקרא" }, { "en": "came", "he": "בא" }, { "en": "child", "he": "ילד" }, { "en": "done", "he": "בוצע / סיים" }, { "en": "dreaming", "he": "לחלום" }, { "en": "far", "he": "רחוק" }, { "en": "fears", "he": "פחדים" }, { "en": "feel", "he": "להרגיש" }, { "en": "finally", "he": "לבסוף" }, { "en": "find", "he": "למצוא" }, { "en": "getting", "he": "לקבל" }, { "en": "ghost", "he": "רוח רפאים" }, { "en": "girl", "he": "נערה / ילדה" }, { "en": "given", "he": "ניתן" }, { "en": "glowing", "he": "זוהר" }, { "en": "going", "he": "ללכת" }, { "en": "golden", "he": "זהוב" }, { "en": "got", "he": "קיבל" }, { "en": "hard", "he": "קשה" }, { "en": "hiding", "he": "להסתתר" }, { "en": "hunters", "he": "ציידים" }, { "en": "kkeuteopsi", "he": "ללא סוף" }, { "en": "know", "he": "לדעת" }, { "en": "lived", "he": "חייתי" }, { "en": "live", "he": "לחיות" }, { "en": "lives", "he": "חיים" }, { "en": "meant", "he": "נועד" }, { "en": "moment", "he": "רגע" }, { "en": "paid", "he": "שולם" }, { "en": "past", "he": "עבר" }, { "en": "patterns", "he": "דפוסים" }, { "en": "place", "he": "מקום" }, { "en": "play", "he": "לשחק" }, { "en": "problem", "he": "בעיה" }, { "en": "put", "he": "לשים" }, { "en": "queen", "he": "מלכה" }, { "en": "shining", "he": "זורח" }, { "en": "sides", "he": "צדדים" }, { "en": "stage", "he": "במה" }, { "en": "strong", "he": "חזק" }, { "en": "throne", "he": "כס מלכות" }, { "en": "time", "he": "זמן" }, { "en": "together", "he": "ביחד" }, { "en": "tried", "he": "ניסה" }, { "en": "two", "he": "שניים" }, { "en": "voices", "he": "קולות" }, { "en": "waited", "he": "להמתין" }, { "en": "walls", "he": "קירות" }, { "en": "wild", "he": "פראי" },
+  { "en": "half",       "he": "חצי" },
+  { "en": "twelve",         "he": "שתים עשרה" },
+  { "en": "late",       "he": "מאוחר" },
+  { "en": "show",       "he": "מופע/להראות" },
+  { "en": "flat",       "he": "דירה/שטוח" },
+  { "en": "spend",      "he": "לבזבז" },
+  { "en": "evening",    "he": "ערב" },
+  { "en": "autumn",     "he": "סתיו" },
+  { "en": "winds",      "he": "רוחות" },
+  { "en": "blowing",    "he": "נושבות" },
+  { "en": "outside",    "he": "בחוץ" },
+  { "en": "look",       "he": "להסתכל" },
+  { "en": "makes",      "he": "גורם/עושה" },
+  { "en": "depressed",  "he": "מדוכא" },
+  { "en": "gloom",      "he": "קדרות" },
+  { "en": "out",        "he": "בחוץ/החוצה" },
+  { "en": "hear",       "he": "לשמוע" },
+  { "en": "prayer",     "he": "תפילה" },
+  { "en": "gimme",      "he": "תנו לי" },
+  { "en": "man",        "he": "גבר" },
+  { "en": "midnight",   "he": "חצות" },
+  { "en": "help",       "he": "לעזור/עזרה" },
+  { "en": "chase",      "he": "לרדוף" },
+  { "en": "shadows",    "he": "צללים" },
+  { "en": "darkness",   "he": "חושך" },
+  { "en": "12",         "he": "שתים עשרה" },
+  { "en": "movie",      "he": "סרט" },
+  { "en": "stars",      "he": "כוכבים" },
+  { "en": "end",        "he": "סוף" },
+  { "en": "fortune",    "he": "מזל" },
+  { "en": "win",        "he": "לנצח" },
+  { "en": "different",  "he": "שונה" },
+  { "en": "living",     "he": "לחיות" },
+  { "en": "tv",         "he": "טלוויזיה" },
+  { "en": "gaze",       "he": "להביט" },
+  { "en": "night",      "he": "לילה" },
+  { "en": "nothing",    "he": "כלום" }
 ]
