@@ -502,6 +502,7 @@
       rpsEl.style.display = 'none';
       memEl.style.display = 'none';
       wamEl.style.display = 'none';
+      pairMatchEl.style.display = 'none';
     }
 
     /*** Handle Answer Selection ***/
@@ -533,9 +534,10 @@
 
     /*** Choose a Random Mini-Game ***/
     function startMiniGame() {
-    quizEl.style.display = 'none';
-    // Only enable Pair Match game for now
-    startPairMatch();
+      quizEl.style.display = 'none';
+      startPairMatch();
+    }
+
     /*** Pair Match Game ***/
     function startPairMatch() {
       pairMatchGrid.innerHTML = '';
@@ -652,7 +654,6 @@
         resumeQuiz();
       };
     }
-    }
 
     /*** Resume Quiz ***/
     function resumeQuiz() {
@@ -661,6 +662,7 @@
       rpsEl.style.display = 'none';
       memEl.style.display = 'none';
       wamEl.style.display = 'none';
+      pairMatchEl.style.display = 'none';
       quizEl.style.display = 'block';
       nextQuestion();
     }
