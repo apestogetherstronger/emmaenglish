@@ -500,7 +500,7 @@
 
     Promise.all([
       loadJsonDictionary('dictionary.json'),
-      loadJsonDictionary('StrangerThings.josn')
+      loadJsonDictionary('StrangerThings.json')
     ])
       .then(([baseDictionary, strangerThingsDictionary]) => {
         dictionary = unionDictionaryEntries(baseDictionary, strangerThingsDictionary);
