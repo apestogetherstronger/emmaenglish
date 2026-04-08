@@ -200,6 +200,21 @@
       margin-bottom: 2px;
     }
 
+    .pair-choice-selected {
+      background: #ffe082 !important;
+      color: #243747;
+    }
+
+    .pair-choice-correct {
+      background: #a5d6a7 !important;
+      color: #1d3b22;
+    }
+
+    .pair-choice-wrong {
+      background: #ef9a9a !important;
+      color: #4d1f1f;
+    }
+
     @media (max-width: 520px) {
       .topbar {
         padding: 8px 10px;
@@ -586,22 +601,24 @@
 
       function clearWrongPick() {
         if (wrongPickBtn && !wrongPickBtn.disabled) {
-          wrongPickBtn.style.backgroundColor = '';
+          wrongPickBtn.classList.remove('pair-choice-wrong');
         }
         wrongPickBtn = null;
       }
 
       function clearSourceSelection() {
         if (sourceSelection && !sourceSelection.btn.disabled) {
-          sourceSelection.btn.style.backgroundColor = '';
+          sourceSelection.btn.classList.remove('pair-choice-selected');
         }
         sourceSelection = null;
         sourceType = null;
       }
 
       function markMatched(btnA, btnB) {
-        btnA.style.backgroundColor = '#a5d6a7';
-        btnB.style.backgroundColor = '#a5d6a7';
+        btnA.classList.remove('pair-choice-selected', 'pair-choice-wrong');
+        btnB.classList.remove('pair-choice-selected', 'pair-choice-wrong');
+        btnA.classList.add('pair-choice-correct');
+        btnB.classList.add('pair-choice-correct');
         btnA.disabled = true;
         btnB.disabled = true;
       }
@@ -636,7 +653,7 @@
           clearWrongPick();
           sourceSelection = { value, btn };
           sourceType = type;
-          btn.style.backgroundColor = '#ffe082';
+          btn.classList.add('pair-choice-selected');
           pairMatchRes.textContent = 'Now choose its match on the other side.';
           return;
         }
@@ -652,10 +669,10 @@
         // If user clicks same column, move source selection.
         if (sourceType === type) {
           clearWrongPick();
-          sourceSelection.btn.style.backgroundColor = '';
+          sourceSelection.btn.classList.remove('pair-choice-selected');
           sourceSelection = { value, btn };
           sourceType = type;
-          btn.style.backgroundColor = '#ffe082';
+          btn.classList.add('pair-choice-selected');
           pairMatchRes.textContent = 'Now choose its match on the other side.';
           return;
         }
@@ -675,7 +692,7 @@
           clearWrongPick();
           markMatched(btn, sourceSelection.btn);
           matched++;
-          pairMatchRes.textContent = '';
+          pairMatchRes.textContent = '✅ Correct match!';
           sourceSelection = null;
           sourceType = null;
 
@@ -690,7 +707,7 @@
           }
         } else {
           clearWrongPick();
-          btn.style.backgroundColor = '#ef9a9a';
+          btn.classList.add('pair-choice-wrong');
           wrongPickBtn = btn;
           pairMatchRes.textContent = 'Not a match. Pick another word on the other side.';
         }
