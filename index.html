@@ -185,6 +185,19 @@
       display: grid !important;
       grid-template-columns: 1fr 1fr;
       gap: 12px !important;
+      align-items: start;
+    }
+
+    .pair-column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pair-column-title {
+      font-weight: 800;
+      color: #3c6d0a;
+      margin-bottom: 2px;
     }
 
     @media (max-width: 520px) {
@@ -268,7 +281,7 @@
   <!-- Pair Match Game -->
   <div id="pairmatch-container" class="container">
     <h2>Pair the Words!</h2>
-    <div id="pairmatch-grid" style="display: flex; gap: 20px; justify-content: center;"></div>
+    <div id="pairmatch-grid"></div>
     <div id="pairmatch-result"></div>
     <button id="pairmatch-continue">Continue Quiz</button>
   </div>
@@ -553,16 +566,23 @@
 
       // Track matches
       let matched = 0;
-      let first = null;
-      let firstType = null;
+      let sourceSelection = null;
+      let sourceType = null;
       let wrongPickBtn = null;
 
       // Create columns
       const col1 = document.createElement('div');
       const col2 = document.createElement('div');
-      col1.style.display = col2.style.display = 'flex';
-      col1.style.flexDirection = col2.style.flexDirection = 'column';
-      col1.style.gap = col2.style.gap = '10px';
+      col1.className = 'pair-column';
+      col2.className = 'pair-column';
+      const leftTitle = document.createElement('div');
+      const rightTitle = document.createElement('div');
+      leftTitle.className = 'pair-column-title';
+      rightTitle.className = 'pair-column-title';
+      leftTitle.textContent = 'English';
+      rightTitle.textContent = 'עברית';
+      col1.append(leftTitle);
+      col2.append(rightTitle);
 
       function clearWrongPick() {
         if (wrongPickBtn && !wrongPickBtn.disabled) {
@@ -571,12 +591,12 @@
         wrongPickBtn = null;
       }
 
-      function clearFirstSelection() {
-        if (first && !first.btn.disabled) {
-          first.btn.style.backgroundColor = '';
+      function clearSourceSelection() {
+        if (sourceSelection && !sourceSelection.btn.disabled) {
+          sourceSelection.btn.style.backgroundColor = '';
         }
-        first = null;
-        firstType = null;
+        sourceSelection = null;
+        sourceType = null;
       }
 
       function markMatched(btnA, btnB) {
@@ -589,6 +609,7 @@
       // Create English buttons
       english.forEach(en => {
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.textContent = en;
         btn.className = 'option';
         btn.onclick = () => select('en', en, btn);
@@ -597,6 +618,7 @@
       // Create Hebrew buttons
       hebrew.forEach(he => {
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.textContent = he;
         btn.className = 'option';
         btn.onclick = () => select('he', he, btn);
@@ -610,29 +632,29 @@
       function select(type, value, btn) {
         if (btn.disabled) return;
 
-        if (!first) {
+        if (!sourceSelection) {
           clearWrongPick();
-          first = { value, btn };
-          firstType = type;
+          sourceSelection = { value, btn };
+          sourceType = type;
           btn.style.backgroundColor = '#ffe082';
           pairMatchRes.textContent = 'Now choose its match on the other side.';
           return;
         }
 
         // Clicking the selected source again deselects it.
-        if (first.btn === btn) {
-          clearFirstSelection();
+        if (sourceSelection.btn === btn) {
+          clearSourceSelection();
           clearWrongPick();
           pairMatchRes.textContent = '';
           return;
         }
 
         // If user clicks same column, move source selection.
-        if (firstType === type) {
+        if (sourceType === type) {
           clearWrongPick();
-          first.btn.style.backgroundColor = '';
-          first = { value, btn };
-          firstType = type;
+          sourceSelection.btn.style.backgroundColor = '';
+          sourceSelection = { value, btn };
+          sourceType = type;
           btn.style.backgroundColor = '#ffe082';
           pairMatchRes.textContent = 'Now choose its match on the other side.';
           return;
@@ -642,20 +664,20 @@
         let en, he;
         if (type === 'en') {
           en = value;
-          he = first.value;
+          he = sourceSelection.value;
         } else {
-          en = first.value;
+          en = sourceSelection.value;
           he = value;
         }
 
         const isMatch = selected.some(pair => pair.en === en && pair.he === he);
         if (isMatch) {
           clearWrongPick();
-          markMatched(btn, first.btn);
+          markMatched(btn, sourceSelection.btn);
           matched++;
           pairMatchRes.textContent = '';
-          first = null;
-          firstType = null;
+          sourceSelection = null;
+          sourceType = null;
 
           if (matched === 6) {
             pairMatchRes.textContent = 'All pairs matched!';
