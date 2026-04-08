@@ -5,24 +5,83 @@
   <title>English-Hebrew Quiz with Mini-Games</title>
   <style>
     /*=== Global Styles ===*/
+    :root {
+      --duo-green: #58cc02;
+      --duo-green-dark: #46a302;
+      --duo-ink: #243747;
+      --duo-surface: #ffffff;
+      --duo-bg: #eef8e8;
+      --duo-border: #d6e7cd;
+      --duo-accent: #1cb0f6;
+      --duo-danger: #ff4b4b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Nunito", "Avenir Next", Arial, sans-serif;
+      min-height: 100dvh;
+      margin: 0;
+      background: radial-gradient(circle at top, #f8ffef 0%, var(--duo-bg) 45%, #ddeed3 100%);
+      overflow-y: auto;
+      color: var(--duo-ink);
+      padding: env(safe-area-inset-top, 0) 14px env(safe-area-inset-bottom, 0);
+    }
+
+    .app-shell {
+      width: min(100%, 460px);
+      margin: 0 auto;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      gap: 12px;
+      padding: 12px 0 20px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #f3ffe9;
+      border: 2px solid var(--duo-border);
+      border-radius: 16px;
+      padding: 10px 12px;
+    }
+
+    .brand {
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      color: #3c6d0a;
+      font-size: 18px;
+    }
+
+    .progress {
+      flex: 1;
+      height: 12px;
+      border-radius: 999px;
+      background: #fff;
+      border: 2px solid var(--duo-border);
       overflow: hidden;
     }
+
+    .progress-fill {
+      height: 100%;
+      width: 12%;
+      background: linear-gradient(90deg, #70d92f, var(--duo-green));
+      transition: width 0.3s ease;
+    }
+
     .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      width: 300px;
-      margin: 20px;
+      background: var(--duo-surface);
+      padding: 18px 16px;
+      border-radius: 18px;
+      border: 2px solid #deecdc;
+      box-shadow: 0 8px 0 #d8e8d4;
+      width: 100%;
       display: none;
       text-align: center;
     }
@@ -33,9 +92,11 @@
     }
 
     #word {
-      font-size: 24px;
-      margin-bottom: 15px;
+      font-size: clamp(24px, 8vw, 34px);
+      margin-bottom: 12px;
       cursor: pointer;
+      font-weight: 800;
+      color: #2e4a62;
     }
 
     .rps-option, .memory-card, .mole {
@@ -51,26 +112,36 @@
     }
 
     .option {
-      margin: 20px auto;
+      margin: 10px auto;
       display: block;
-      border: none;
-      border-radius: 4px;
-      /* keep full width for quiz answers */
+      border: 2px solid rgba(36, 55, 71, 0.06);
+      border-radius: 14px;
       width: 100%;
-      height: 50px;
-      font-size: 18px;
+      min-height: 56px;
+      padding: 10px;
+      font-size: 20px;
+      font-weight: 700;
       cursor: pointer;
       text-align: center;
+      color: var(--duo-ink);
+      box-shadow: 0 4px 0 rgba(36, 55, 71, 0.09);
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
+    }
+
+    .option:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(36, 55, 71, 0.08);
     }
 
     /* Fix RPS option sizing */
     .rps-option { width: 64px !important; height: 64px !important; }
 
     #score {
-      margin-top: 10px;
-      font-size: 18px;
+      margin-top: 12px;
+      font-size: 16px;
       cursor: pointer;               /* clickable for CSV export */
-      text-decoration: underline;    /* hint it's interactive */
+      text-decoration: underline;
+      color: #49617a;
     }
 
     #rps-options,
@@ -91,6 +162,47 @@
       font-size: 20px;
       font-weight: bold;
       margin-top: 10px;
+    }
+
+    button {
+      font: inherit;
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(180deg, #6ddd1e 0%, var(--duo-green) 100%);
+      box-shadow: 0 4px 0 var(--duo-green-dark);
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--duo-green-dark);
+    }
+
+    #pairmatch-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px !important;
+    }
+
+    @media (max-width: 520px) {
+      .topbar {
+        padding: 8px 10px;
+      }
+      .brand {
+        font-size: 15px;
+      }
+      #pairmatch-grid {
+        grid-template-columns: 1fr;
+      }
+      #memory-grid {
+        gap: 8px !important;
+      }
+      .container h2 {
+        margin-top: 4px;
+      }
     }
 
     .particle {
@@ -117,6 +229,11 @@
   </style>
 </head>
 <body>
+  <div class="app-shell">
+  <div class="topbar">
+    <div class="brand">Emma English</div>
+    <div class="progress"><div id="progress-fill" class="progress-fill"></div></div>
+  </div>
   <div id="loading">Loading quiz...</div>
 
   <!-- Quiz Screen -->
@@ -161,6 +278,7 @@
 
   <!-- Background Music -->
   <audio id="rps-music" src="./war_game4.mp3" loop preload="auto"></audio>
+  </div>
 
   <script>
     /*** Utility Functions ***/
@@ -302,9 +420,10 @@
 
   const pairMatchEl = document.getElementById('pairmatch-container');
   const pairMatchGrid = document.getElementById('pairmatch-grid');
-  const pairMatchRes = document.getElementById('pairmatch-result');
+    const pairMatchRes = document.getElementById('pairmatch-result');
   const pairMatchCont = document.getElementById('pairmatch-continue');
   const rpsMusic = document.getElementById('rps-music');
+  const progressFill = document.getElementById('progress-fill');
 
     /*** Sprite Sheet Setup ***/
     const sheet = new Image();
@@ -376,6 +495,8 @@
       });
 
       scoreEl.textContent = `Score: ${score} / ${totalQuestions}`;
+      const progress = totalQuestions ? Math.min(100, (score / totalQuestions) * 100) : 12;
+      progressFill.style.width = `${Math.max(12, progress)}%`;
       // Show quiz, hide games
       quizEl.style.display = 'block';
       rpsEl.style.display = 'none';
