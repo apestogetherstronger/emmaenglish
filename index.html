@@ -474,19 +474,41 @@
       cellH = sheet.naturalHeight / 4;
     };
 
-    /*** Load Dictionary ***/
-    fetch('dictionary.json')
-      .then(res => {
-        if (!res.ok) throw new Error(res.status);
-        return res.json();
-      })
-      .then(data => {
-        dictionary = data;
+    /*** Load Dictionaries ***/
+    function loadJsonDictionary(path) {
+      return fetch(path)
+        .then(res => {
+          if (!res.ok) throw new Error(`${path}: ${res.status}`);
+          return res.json();
+        });
+    }
+
+    function unionDictionaryEntries(...lists) {
+      const seen = new Set();
+      const merged = [];
+
+      lists.flat().forEach(entry => {
+        const key = `${entry.en}:::${entry.he}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(entry);
+        }
+      });
+
+      return merged;
+    }
+
+    Promise.all([
+      loadJsonDictionary('dictionary.json'),
+      loadJsonDictionary('StrangerThings.josn')
+    ])
+      .then(([baseDictionary, strangerThingsDictionary]) => {
+        dictionary = unionDictionaryEntries(baseDictionary, strangerThingsDictionary);
         initQuiz();
       })
       .catch(err => {
         console.error('Dictionary load error:', err);
-        loadingEl.textContent = 'Failed to load dictionary.';
+        loadingEl.textContent = 'Failed to load dictionaries.';
       });
 
     /*** Initialize Quiz Screen ***/
