@@ -194,9 +194,6 @@
       .brand {
         font-size: 15px;
       }
-      #pairmatch-grid {
-        grid-template-columns: 1fr;
-      }
       #memory-grid {
         gap: 8px !important;
       }
@@ -558,7 +555,7 @@
       let matched = 0;
       let first = null;
       let firstType = null;
-      let locked = false;
+      let wrongPickBtn = null;
 
       // Create columns
       const col1 = document.createElement('div');
@@ -567,10 +564,26 @@
       col1.style.flexDirection = col2.style.flexDirection = 'column';
       col1.style.gap = col2.style.gap = '10px';
 
-      // Helper to disable all buttons
-      function disableAll(disabled) {
-        col1.querySelectorAll('button').forEach(b => b.disabled = disabled);
-        col2.querySelectorAll('button').forEach(b => b.disabled = disabled);
+      function clearWrongPick() {
+        if (wrongPickBtn && !wrongPickBtn.disabled) {
+          wrongPickBtn.style.backgroundColor = '';
+        }
+        wrongPickBtn = null;
+      }
+
+      function clearFirstSelection() {
+        if (first && !first.btn.disabled) {
+          first.btn.style.backgroundColor = '';
+        }
+        first = null;
+        firstType = null;
+      }
+
+      function markMatched(btnA, btnB) {
+        btnA.style.backgroundColor = '#a5d6a7';
+        btnB.style.backgroundColor = '#a5d6a7';
+        btnA.disabled = true;
+        btnB.disabled = true;
       }
 
       // Create English buttons
@@ -596,56 +609,68 @@
 
       function select(type, value, btn) {
         if (btn.disabled) return;
-        // If this is a re-click on an error-highlighted button, deselect
-        if (btn.style.backgroundColor === 'rgb(239, 154, 154)') { // #ef9a9a
-          btn.style.backgroundColor = '';
-          if (first && first.btn === btn) {
-            first = null;
-            firstType = null;
-          }
-          pairMatchRes.textContent = '';
-          return;
-        }
+
         if (!first) {
+          clearWrongPick();
           first = { value, btn };
           firstType = type;
           btn.style.backgroundColor = '#ffe082';
-        } else if (firstType !== type) {
-          // Check match
-          let en, he;
-          if (type === 'en') {
-            en = value;
-            he = first.value;
-          } else {
-            en = first.value;
-            he = value;
+          pairMatchRes.textContent = 'Now choose its match on the other side.';
+          return;
+        }
+
+        // Clicking the selected source again deselects it.
+        if (first.btn === btn) {
+          clearFirstSelection();
+          clearWrongPick();
+          pairMatchRes.textContent = '';
+          return;
+        }
+
+        // If user clicks same column, move source selection.
+        if (firstType === type) {
+          clearWrongPick();
+          first.btn.style.backgroundColor = '';
+          first = { value, btn };
+          firstType = type;
+          btn.style.backgroundColor = '#ffe082';
+          pairMatchRes.textContent = 'Now choose its match on the other side.';
+          return;
+        }
+
+        // Opposite side selected: check match
+        let en, he;
+        if (type === 'en') {
+          en = value;
+          he = first.value;
+        } else {
+          en = first.value;
+          he = value;
+        }
+
+        const isMatch = selected.some(pair => pair.en === en && pair.he === he);
+        if (isMatch) {
+          clearWrongPick();
+          markMatched(btn, first.btn);
+          matched++;
+          pairMatchRes.textContent = '';
+          first = null;
+          firstType = null;
+
+          if (matched === 6) {
+            pairMatchRes.textContent = 'All pairs matched!';
+            speak('Well done');
+            showFireworks();
+            setTimeout(() => {
+              pairMatchEl.style.display = 'none';
+              resumeQuiz();
+            }, 1200);
           }
-          const isMatch = selected.some(pair => pair.en === en && pair.he === he);
-          if (isMatch) {
-            btn.style.backgroundColor = '#a5d6a7';
-            first.btn.style.backgroundColor = '#a5d6a7';
-            btn.disabled = true;
-            first.btn.disabled = true;
-            matched++;
-            pairMatchRes.textContent = '';
-            if (matched === 6) {
-              pairMatchRes.textContent = 'All pairs matched!';
-              speak('Well done');
-              showFireworks();
-              setTimeout(() => {
-                pairMatchEl.style.display = 'none';
-                resumeQuiz();
-              }, 1200);
-            }
-            first = null;
-            firstType = null;
-          } else {
-            btn.style.backgroundColor = '#ef9a9a';
-            first.btn.style.backgroundColor = '#ef9a9a';
-            pairMatchRes.textContent = 'Mistake! Click either word to deselect and try again.';
-            // Allow user to click either error-highlighted button to deselect
-            // Do not reset first/firstType here, wait for user to click
-          }
+        } else {
+          clearWrongPick();
+          btn.style.backgroundColor = '#ef9a9a';
+          wrongPickBtn = btn;
+          pairMatchRes.textContent = 'Not a match. Pick another word on the other side.';
         }
       }
       // Always hide continue button when leaving
