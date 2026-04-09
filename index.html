@@ -360,6 +360,10 @@
 
     /*** LocalStorage "DB" for Answers ***/
     const STORAGE_KEY = 'eh-quiz-answers';
+    const RECENT_DAYS_FOR_MASTERY = 30;
+    const STATS_MANIFEST_PATH = 'stats/index.json';
+    const STATS_FOLDER_PATH = 'stats/';
+    let repoImportedAnswers = [];
 
     function loadAnswers() {
       try {
@@ -377,6 +381,202 @@
       } catch (e) {
         console.warn('Failed to save answers to LocalStorage:', e);
       }
+    }
+
+    function dedupeByTimestamp(rows) {
+      const seen = new Set();
+      const deduped = [];
+      rows.forEach(row => {
+        if (!row || !row.ts) return;
+        if (seen.has(row.ts)) return;
+        seen.add(row.ts);
+        deduped.push(row);
+      });
+      return deduped;
+    }
+
+    function getMergedAnswerHistory() {
+      return dedupeByTimestamp([
+        ...loadAnswers(),
+        ...repoImportedAnswers
+      ]);
+    }
+
+    function parseCsvLine(line) {
+      const out = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            cur += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === ',' && !inQuotes) {
+          out.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out;
+    }
+
+    function parseAnswersCsv(text) {
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      if (!lines.length) return [];
+      const header = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
+      const tsIdx = header.indexOf('timestamp');
+      const enIdx = header.indexOf('english');
+      const heIdx = header.indexOf('hebrew');
+      const resultIdx = header.indexOf('result');
+      if (tsIdx < 0 || enIdx < 0 || heIdx < 0 || resultIdx < 0) return [];
+
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cells = parseCsvLine(lines[i]);
+        const ts = (cells[tsIdx] || '').trim();
+        const en = (cells[enIdx] || '').trim();
+        const he = (cells[heIdx] || '').trim();
+        const result = (cells[resultIdx] || '').trim().toLowerCase();
+        if (!ts || !en) continue;
+        rows.push({
+          ts,
+          en,
+          he,
+          correct: result === 'correct'
+        });
+      }
+      return rows;
+    }
+
+    function discoverCsvFilesFromDirectoryListing(htmlText) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+      const links = Array.from(doc.querySelectorAll('a[href]'))
+        .map(a => a.getAttribute('href') || '')
+        .filter(href => href.toLowerCase().endsWith('.csv'))
+        .map(href => {
+          if (/^https?:\/\//i.test(href)) return href;
+          if (href.startsWith('/')) return href.slice(1);
+          if (href.startsWith('./')) return STATS_FOLDER_PATH + href.slice(2);
+          if (href.startsWith('../')) return null;
+          return STATS_FOLDER_PATH + href;
+        })
+        .filter(Boolean);
+      return Array.from(new Set(links));
+    }
+
+    async function resolveRepoStatsCsvFileList() {
+      // Preferred: explicit manifest
+      try {
+        const manifestRes = await fetch(STATS_MANIFEST_PATH, { cache: 'no-cache' });
+        if (manifestRes.ok) {
+          const manifest = await manifestRes.json();
+          const files = Array.isArray(manifest?.files) ? manifest.files : [];
+          return files.filter(path => typeof path === 'string' && path.toLowerCase().endsWith('.csv'));
+        }
+      } catch (e) {
+        console.warn('Failed to load stats manifest:', e);
+      }
+
+      // Fallback: directory listing discovery (works on servers that expose index pages)
+      try {
+        const dirRes = await fetch(STATS_FOLDER_PATH, { cache: 'no-cache' });
+        if (!dirRes.ok) return [];
+        const dirHtml = await dirRes.text();
+        return discoverCsvFilesFromDirectoryListing(dirHtml);
+      } catch (e) {
+        console.warn('Failed to discover CSV files from stats directory listing:', e);
+        return [];
+      }
+    }
+
+    async function loadRepoCsvStats() {
+      const files = await resolveRepoStatsCsvFileList();
+      const importedRows = [];
+      for (const relativePath of files) {
+        if (typeof relativePath !== 'string' || !relativePath.toLowerCase().endsWith('.csv')) {
+          continue;
+        }
+        try {
+          const csvRes = await fetch(relativePath, { cache: 'no-cache' });
+          if (!csvRes.ok) continue;
+          const text = await csvRes.text();
+          importedRows.push(...parseAnswersCsv(text));
+        } catch (e) {
+          console.warn('Failed loading CSV stats file:', relativePath, e);
+        }
+      }
+
+      if (!files.length) {
+        console.info('No repository CSV stats files found; continuing with local history only.');
+      }
+
+      return dedupeByTimestamp(importedRows);
+    }
+
+    function buildWordPerformanceStats() {
+      const history = getMergedAnswerHistory();
+      const now = Date.now();
+      const recentWindowStart = now - (RECENT_DAYS_FOR_MASTERY * 24 * 60 * 60 * 1000);
+      const byEnglish = new Map();
+
+      history.forEach(item => {
+        const key = item.en;
+        if (!key) return;
+        if (!byEnglish.has(key)) {
+          byEnglish.set(key, {
+            shown: 0,
+            wrongEver: false,
+            correctRecent: 0
+          });
+        }
+        const row = byEnglish.get(key);
+        row.shown += 1;
+        if (!item.correct) {
+          row.wrongEver = true;
+        }
+        const ts = Date.parse(item.ts);
+        if (item.correct && !Number.isNaN(ts) && ts >= recentWindowStart) {
+          row.correctRecent += 1;
+        }
+      });
+
+      return byEnglish;
+    }
+
+    function getWordWeight(entry, statsMap) {
+      const stats = statsMap.get(entry.en);
+      if (!stats || stats.shown === 0) return 3.0;        // never shown -> much more
+      if (stats.wrongEver) return 2.2;                    // any wrong attempt -> more
+      if (stats.correctRecent > 4) return 0.25;           // mastered recently -> much less
+      if (stats.correctRecent >= 2) return 0.7;           // mild down-weight
+      return 1.0;
+    }
+
+    function pickWeightedRandomWord() {
+      if (!dictionary.length) return null;
+      const statsMap = buildWordPerformanceStats();
+      const weighted = dictionary.map(entry => ({
+        entry,
+        weight: getWordWeight(entry, statsMap)
+      }));
+      const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
+      if (totalWeight <= 0) {
+        return dictionary[randInt(dictionary.length)];
+      }
+
+      let roll = Math.random() * totalWeight;
+      for (const item of weighted) {
+        roll -= item.weight;
+        if (roll <= 0) return item.entry;
+      }
+      return weighted[weighted.length - 1].entry;
     }
 
     function logAnswer(english, chosenHebrew, isCorrect) {
@@ -512,7 +712,7 @@
       });
 
     /*** Initialize Quiz Screen ***/
-    function initQuiz() {
+    async function initQuiz() {
       loadingEl.style.display = 'none';
       quizEl.style.display = 'block';
       wordEl.addEventListener('click', () => speak(current.en));
@@ -520,17 +720,18 @@
   rpsCont.addEventListener('click', resumeQuiz);
   memCont.addEventListener('click', resumeQuiz);
   wamCont.addEventListener('click', resumeQuiz);
-  pairMatchCont.addEventListener('click', resumeQuiz);
+      pairMatchCont.addEventListener('click', resumeQuiz);
 
       // Clicking the score triggers CSV download (with confirm)
       scoreEl.addEventListener('click', downloadCSV);
+      repoImportedAnswers = await loadRepoCsvStats();
 
       nextQuestion();
     }
 
     /*** Show Next Question ***/
     function nextQuestion() {
-      current = dictionary[randInt(dictionary.length)];
+      current = pickWeightedRandomWord();
       wordEl.textContent = current.en;
       speak(current.en);
 
